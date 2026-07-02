@@ -1,57 +1,27 @@
 package com.resaletracker.financialapi.entities;
 
 import jakarta.persistence.*;
+import lombok.*;
 
-import java.io.Serial;
-import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.Set;
 
 @Entity
 @Table(name = "tb_user")
-public class User implements Serializable {
-    @Serial
-    private static final long serialVersionUID = 1L;
-
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
+@EqualsAndHashCode
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private String username;
     private String password;
     private BigDecimal balance;
+    @OneToMany(mappedBy = "user")
+    private Set<Category> categories;
+//private List<Item> items;
 
-//    private Set<Category> categories;
-//    private List<Item> items;
-
-
-    public User() {
-    }
-
-    public User(String username, String password, BigDecimal balance) {
-        this.username = username;
-        this.password = password;
-        this.balance = balance;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public BigDecimal getBalance() {
-        return balance;
-    }
-
-    public void setBalance(BigDecimal balance) {
-        this.balance = balance;
-    }
 }
