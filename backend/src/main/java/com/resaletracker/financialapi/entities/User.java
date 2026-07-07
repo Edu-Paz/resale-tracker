@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -23,6 +24,7 @@ public class User {
     private BigDecimal balance;
     @OneToMany(mappedBy = "user")
     private Set<Category> categories;
-//private List<Item> items;
+    @OneToMany(mappedBy = "user")
+    private List<Item> items;
 
 }
