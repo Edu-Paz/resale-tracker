@@ -1,13 +1,14 @@
 package com.resaletracker.financialapi.controllers;
 
 import com.resaletracker.financialapi.dtos.UserDTO;
+import com.resaletracker.financialapi.dtos.UserRegisterDTO;
 import com.resaletracker.financialapi.services.UserService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
 
 @RestController
 @RequestMapping("/users")
@@ -19,9 +20,16 @@ public class UserController {
     }
 
     @GetMapping(value = "/{id}")
-    @Transactional(readOnly = true)
     public ResponseEntity<UserDTO> findById(@PathVariable Long id){
         return ResponseEntity.ok(userService.findById(id));
+    }
+
+    @PostMapping(value = "/register")
+    public ResponseEntity<UserDTO> registerUser(@Valid @RequestBody UserRegisterDTO userRegisterDTO){
+        UserDTO newUser = userService.registerUser(userRegisterDTO);
+        URI uri = ServletUriComponentsBuilder.fromCurrentContextPath().path("/users/{id}")
+                .buildAndExpand(newUser.getId()).toUri();
+        return ResponseEntity.created(uri).body(newUser);
     }
 
 
