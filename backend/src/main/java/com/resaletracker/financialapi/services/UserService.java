@@ -4,6 +4,7 @@ import com.resaletracker.financialapi.dtos.UserDTO;
 import com.resaletracker.financialapi.dtos.UserRegisterDTO;
 import com.resaletracker.financialapi.entities.User;
 import com.resaletracker.financialapi.repositories.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,21 +25,18 @@ public class UserService {
     public UserDTO findById(Long id) {
         User user = userRepository.findById(id).orElse(null);
         if (user == null) {
-            return null; // Or throw a custom exception like UserNotFoundException
+            // Lançar uma exceção é a melhor prática para sinalizar que o recurso não foi encontrado.
+            throw new EntityNotFoundException("User not found with id: " + id);
         }
-        UserDTO userDTO = new UserDTO();
-        userDTO.setId(user.getId());
-        userDTO.setUsername(user.getUsername());
-        userDTO.setBalance(user.getBalance());
-        return userDTO;
+        return new UserDTO(user.getId(), user.getUsername(), user.getBalance());
     }
-    
+
     @Transactional
-    public UserDTO registerUser(UserRegisterDTO userRegisterDTO){
-        if (!userRegisterDTO.getPassword().equals(userRegisterDTO.getPasswordConfirmation())){
+    public UserDTO registerUser(UserRegisterDTO userRegisterDTO) {
+        if (!userRegisterDTO.getPassword().equals(userRegisterDTO.getPasswordConfirmation())) {
             throw new IllegalArgumentException("Password do not match");
         }
-        if (userRepository.existsByUsername(userRegisterDTO.getUsername())){
+        if (userRepository.existsByUsername(userRegisterDTO.getUsername())) {
             throw new IllegalArgumentException("Username already exists");
         }
 
@@ -49,7 +47,15 @@ public class UserService {
 
         userRepository.save(user);
         return new UserDTO(user.getId(), user.getUsername(), user.getBalance());
+    }
 
+    @Transactional
+    public void deleteUser(Long id) {
+        if (!userRepository.existsById(id)) {
+            // Lança uma exceção se o usuário a ser deletado não existir.
+            throw new EntityNotFoundException("User not found with id: " + id);
+        }
+        userRepository.deleteById(id);
     }
 
 }
