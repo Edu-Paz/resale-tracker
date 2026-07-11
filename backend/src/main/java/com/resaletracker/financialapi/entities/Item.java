@@ -27,8 +27,7 @@ public class Item {
     private ItemStatus status;
     private BigDecimal profit;
     private BigDecimal margin;
-    @ManyToOne
-    private User user;
-    @ManyToOne
+
+    @ManyToOne(optional = false)
     private Category category;
 }
