@@ -23,11 +23,8 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public UserDTO findById(Long id) {
-        User user = userRepository.findById(id).orElse(null);
-        if (user == null) {
-            // Lançar uma exceção é a melhor prática para sinalizar que o recurso não foi encontrado.
-            throw new EntityNotFoundException("User not found with id: " + id);
-        }
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
         return new UserDTO(user.getId(), user.getUsername(), user.getBalance());
     }
 
