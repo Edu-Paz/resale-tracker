@@ -10,6 +10,8 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 public class CategoryService {
     private final CategoryRepository categoryRepository;
@@ -35,7 +37,29 @@ public class CategoryService {
     }
 
     @Transactional
-    public void deleteCategoryById(Long id){
+    public void deleteCategoryById(Long id, Long userId){
+        Long deletedCount = categoryRepository.deleteByIdAndUserId(id, userId);
+        if (deletedCount == 0) {
+            throw new EntityNotFoundException("Category not found with id: " + id + " for the specified user.");
+        }
+    }
 
+    @Transactional
+    public CategoryDTO updateCategory(Long id, Long userId, CategoryDTO categoryDTO){
+        Category category = categoryRepository.findByIdAndUserId(id, userId)
+                .orElseThrow(() -> new EntityNotFoundException("Category not found with id: " + id + " for the specified user."));
+
+        category.setName(categoryDTO.getName());
+        category = categoryRepository.save(category);
+        return new CategoryDTO(category);
+    }
+    
+    @Transactional(readOnly = true)
+    public List<CategoryDTO> findAllCategoriesByUser(Long userId){
+        if (!userRepository.existsById(userId)) {
+            throw new EntityNotFoundException("User not found with id: " + userId);
+        }
+        List<Category> categories = categoryRepository.findAllByUserId(userId);
+        return categories.stream().map(CategoryDTO::new).toList();
     }
 }
