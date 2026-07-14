@@ -1,12 +1,12 @@
 package com.resaletracker.financialapi.controllers;
 
 import com.resaletracker.financialapi.dtos.ItemDTO;
+import com.resaletracker.financialapi.dtos.ItemInsertDTO;
+import com.resaletracker.financialapi.dtos.ItemSellDTO;
 import com.resaletracker.financialapi.services.ItemService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -24,5 +24,20 @@ public class ItemController {
         List<ItemDTO> items = itemService.findAllItemsByUser(userId, categoryId);
         // TODO: Substituir userId pelo usuário autenticado
         return ResponseEntity.ok(items);
+    }
+
+    @PostMapping
+    public ResponseEntity<ItemDTO> createItem(@RequestParam Long userId, @RequestBody ItemInsertDTO itemInsertDTO){
+        ItemDTO itemDTO = itemService.createItem(itemInsertDTO, userId);
+        return ResponseEntity.ok(itemDTO);
+    }
+
+    @PatchMapping(value = "/{itemId}/sell")
+    public ResponseEntity<ItemDTO> sellItem (
+            @PathVariable Long itemId,
+            @RequestParam Long userId, // TODO: Substituir por usuário autenticado
+            @RequestBody @Valid ItemSellDTO sellDTO){
+        ItemDTO soldItem = itemService.sellItem(itemId, userId, sellDTO);
+        return ResponseEntity.ok(soldItem);
     }
 }
