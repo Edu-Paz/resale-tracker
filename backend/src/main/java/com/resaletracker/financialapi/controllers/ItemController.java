@@ -40,4 +40,16 @@ public class ItemController {
         ItemDTO soldItem = itemService.sellItem(itemId, userId, sellDTO);
         return ResponseEntity.ok(soldItem);
     }
+
+    @GetMapping(value = "/{itemId}")
+    public ResponseEntity<ItemDTO> getById (@PathVariable Long itemId, @RequestParam Long userId){
+        ItemDTO itemDTO = itemService.getById(itemId, userId);
+        return ResponseEntity.ok(itemDTO);
+    }
+
+    @DeleteMapping(value = "/{itemId}")
+    public ResponseEntity<Void> deleteById (@PathVariable Long itemId, @RequestParam Long userId){
+        itemService.deleteById(itemId, userId);
+        return ResponseEntity.noContent().build();
+    }
 }

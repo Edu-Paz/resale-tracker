@@ -1,5 +1,6 @@
 package com.resaletracker.financialapi.dtos;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.resaletracker.financialapi.entities.Item;
 import com.resaletracker.financialapi.entities.ItemStatus;
 import lombok.Getter;
@@ -12,6 +13,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @NoArgsConstructor
+@JsonPropertyOrder({"id", "name", "imgUrl", "status", "buyPrice", "buyDate", "sellPrice", "sellDate", "profit", "margin", "category"})
 public class ItemDTO {
     private Long id;
     private String name;

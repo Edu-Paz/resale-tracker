@@ -124,4 +124,32 @@ public class ItemService {
         // 6. Return the updated DTO.
         return new ItemDTO(item);
     }
+
+    @Transactional(readOnly = true)
+    public ItemDTO getById(Long itemId, Long userId){
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new EntityNotFoundException("Item not found with id: " + itemId));
+
+        if(!item.getCategory().getUser().getId().equals(userId)){
+            throw new SecurityException("ITem does not belong to this User");
+        }
+
+        return new ItemDTO(item);
+    }
+
+    @Transactional
+    public void deleteById (Long itemId, Long userId){
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new EntityNotFoundException("Item not found with id: " + itemId));
+
+        if(!item.getCategory().getUser().getId().equals(userId)){
+            throw new SecurityException("ITem does not belong to this User");
+        }
+
+        if(item.getStatus() == ItemStatus.SOLD){
+            throw new IllegalStateException("Cannot delete an item that has already been sold.");
+        }
+
+        itemRepository.deleteById(itemId);
+    }
 }

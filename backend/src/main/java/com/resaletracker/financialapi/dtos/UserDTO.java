@@ -1,5 +1,6 @@
 package com.resaletracker.financialapi.dtos;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.resaletracker.financialapi.entities.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,6 +13,7 @@ import java.math.BigDecimal;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonPropertyOrder({"id", "username", "balance"})
 public class UserDTO {
 
     private Long id;
