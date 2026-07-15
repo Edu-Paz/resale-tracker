@@ -1,0 +1,22 @@
+package com.resaletracker.financialapi.dtos;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Positive;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
+@Getter
+@Setter
+public class ItemUpdateDTO {
+    @NotBlank(message = "Name is mandatory")
+    private String name;
+    private String imgUrl;
+    @Positive(message = "Buy price must be positive")
+    private BigDecimal buyPrice;
+    @PastOrPresent(message = "Buy date cannot be in the future")
+    private LocalDate buyDate;
+}
