@@ -3,6 +3,7 @@ package com.resaletracker.financialapi.services;
 import com.resaletracker.financialapi.dtos.ItemDTO;
 import com.resaletracker.financialapi.dtos.ItemInsertDTO;
 import com.resaletracker.financialapi.dtos.ItemSellDTO;
+import com.resaletracker.financialapi.dtos.ItemUpdateDTO;
 import com.resaletracker.financialapi.entities.Category;
 import com.resaletracker.financialapi.entities.Item;
 import com.resaletracker.financialapi.entities.ItemStatus;
@@ -88,26 +89,21 @@ public class ItemService {
 
     @Transactional
     public ItemDTO sellItem(Long itemId, Long userId, ItemSellDTO sellDTO) {
-        // 1. Fetch the item, ensuring it belongs to the user.
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new EntityNotFoundException("Item not found with id: " + itemId));
 
         if (!item.getCategory().getUser().getId().equals(userId)) {
-            // Use a more appropriate exception for authorization failures
             throw new SecurityException("User not authorized to sell this item.");
         }
 
-        // 2. Check if the item is already sold.
         if (item.getStatus() == ItemStatus.SOLD) {
             throw new IllegalStateException("Item with id " + itemId + " has already been sold.");
         }
 
-        // 3. Update item details from the DTO.
         item.setSellPrice(sellDTO.getSellPrice());
         item.setSellDate(sellDTO.getSellDate());
         item.setStatus(ItemStatus.SOLD);
 
-        // 4. Calculate profit and margin.
         BigDecimal profit = item.getSellPrice().subtract(item.getBuyPrice());
         item.setProfit(profit);
 
@@ -118,10 +114,6 @@ public class ItemService {
             item.setMargin(BigDecimal.ZERO);
         }
 
-        // 5. Save the updated entity.
-        item = itemRepository.save(item);
-
-        // 6. Return the updated DTO.
         return new ItemDTO(item);
     }
 
@@ -151,5 +143,30 @@ public class ItemService {
         }
 
         itemRepository.deleteById(itemId);
+    }
+
+    @Transactional
+    public ItemDTO updateItem(Long itemId, Long userId, ItemUpdateDTO itemUpdateDTO) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new EntityNotFoundException("Item not found with id: " + itemId));
+
+        if (!item.getCategory().getUser().getId().equals(userId)) {
+            throw new SecurityException("User not authorized to update this item.");
+        }
+
+        if (itemUpdateDTO.getName() != null) {
+            item.setName(itemUpdateDTO.getName());
+        }
+        if (itemUpdateDTO.getImgUrl() != null) {
+            item.setImgUrl(itemUpdateDTO.getImgUrl());
+        }
+        if (itemUpdateDTO.getBuyPrice() != null) {
+            item.setBuyPrice(itemUpdateDTO.getBuyPrice());
+        }
+        if (itemUpdateDTO.getBuyDate() != null) {
+            item.setBuyDate(itemUpdateDTO.getBuyDate());
+        }
+
+        return new ItemDTO(item);
     }
 }
