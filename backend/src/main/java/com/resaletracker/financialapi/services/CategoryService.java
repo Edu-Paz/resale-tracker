@@ -6,6 +6,7 @@ import com.resaletracker.financialapi.entities.Category;
 import com.resaletracker.financialapi.entities.User;
 import com.resaletracker.financialapi.repositories.CategoryRepository;
 import com.resaletracker.financialapi.repositories.UserRepository;
+import com.resaletracker.financialapi.services.exceptions.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +26,7 @@ public class CategoryService {
     @Transactional
     public CategoryDTO createCategory(CategoryInsertDTO categoryInsertDTO) {
         User user = userRepository.findById(categoryInsertDTO.getUserId())
-                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + categoryInsertDTO.getUserId()));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + categoryInsertDTO.getUserId()));
 
         Category category = new Category();
         category.setName(categoryInsertDTO.getName());
@@ -40,14 +41,14 @@ public class CategoryService {
     public void deleteCategoryById(Long id, Long userId){
         Long deletedCount = categoryRepository.deleteByIdAndUserId(id, userId);
         if (deletedCount == 0) {
-            throw new EntityNotFoundException("Category not found with id: " + id + " for the specified user.");
+            throw new ResourceNotFoundException("Category not found with id: " + id + " for the specified user.");
         }
     }
 
     @Transactional
     public CategoryDTO updateCategory(Long id, Long userId, CategoryDTO categoryDTO){
         Category category = categoryRepository.findByIdAndUserId(id, userId)
-                .orElseThrow(() -> new EntityNotFoundException("Category not found with id: " + id + " for the specified user."));
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id + " for the specified user."));
 
         category.setName(categoryDTO.getName());
         category = categoryRepository.save(category);
@@ -57,7 +58,7 @@ public class CategoryService {
     @Transactional(readOnly = true)
     public List<CategoryDTO> findAllCategoriesByUser(Long userId){
         if (!userRepository.existsById(userId)) {
-            throw new EntityNotFoundException("User not found with id: " + userId);
+            throw new ResourceNotFoundException("User not found with id: " + userId);
         }
         List<Category> categories = categoryRepository.findAllByUserId(userId);
         return categories.stream().map(CategoryDTO::new).toList();
