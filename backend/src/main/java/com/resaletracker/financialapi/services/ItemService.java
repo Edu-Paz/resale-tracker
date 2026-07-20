@@ -10,7 +10,8 @@ import com.resaletracker.financialapi.entities.ItemStatus;
 import com.resaletracker.financialapi.repositories.CategoryRepository;
 import com.resaletracker.financialapi.repositories.ItemRepository;
 import com.resaletracker.financialapi.repositories.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
+import com.resaletracker.financialapi.services.exceptions.BusinessException;
+import com.resaletracker.financialapi.services.exceptions.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,26 +33,19 @@ public class ItemService {
 
     @Transactional(readOnly = true)
     public List<ItemDTO> findAllItemsByUser(Long userId, Long categoryId) {
-        // 1. Validate if the user exists.
         if (!userRepository.existsById(userId)) {
-            throw new EntityNotFoundException("User not found with id: " + userId);
+            throw new ResourceNotFoundException("User not found with id: " + userId);
         }
 
         List<Item> items;
-
-        // 2. Decide which repository method to call
         if (categoryId != null) {
-            // If a categoryId is provided, validate if the category belongs to the user before fetching
             categoryRepository.findByIdAndUserId(categoryId, userId)
-                    .orElseThrow(() -> new EntityNotFoundException("Category with id " + categoryId + " not found for user " + userId));
-
+                    .orElseThrow(() -> new ResourceNotFoundException("Category with id " + categoryId + " not found for user " + userId));
             items = itemRepository.findAllByCategory_UserIdAndCategoryId(userId, categoryId);
         } else {
-            // If no categoryId is provided, fetch all items for the user
             items = itemRepository.findAllByCategory_UserId(userId);
         }
 
-        // 3. Map the list of entities to a list of DTOs
         return items.stream()
                 .map(ItemDTO::new)
                 .toList();
@@ -59,45 +53,36 @@ public class ItemService {
 
     @Transactional
     public ItemDTO createItem(ItemInsertDTO itemInsertDTO, Long userId) {
-        // 1. Validate and fetch the category, ensuring it belongs to the user.
         Category category = categoryRepository.findByIdAndUserId(itemInsertDTO.getCategoryId(), userId)
-                .orElseThrow(() -> new EntityNotFoundException("Category with id " + itemInsertDTO.getCategoryId() + " not found for user " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("Category with id " + itemInsertDTO.getCategoryId() + " not found for user " + userId));
 
-        // 2. Instantiate the new Item entity.
         Item item = new Item();
-
-        // 3. Map data from the DTO to the entity.
         item.setName(itemInsertDTO.getName());
         item.setImgUrl(itemInsertDTO.getImgUrl());
         item.setBuyPrice(itemInsertDTO.getBuyPrice());
         item.setBuyDate(itemInsertDTO.getBuyDate());
-        item.setCategory(category); // Associate the validated category.
-
-        // 4. Set default values for a new item.
+        item.setCategory(category);
         item.setStatus(ItemStatus.AVAILABLE);
         item.setSellPrice(null);
         item.setSellDate(null);
         item.setProfit(null);
         item.setMargin(null);
 
-        // 5. Save the new entity to the database.
         item = itemRepository.save(item);
-
-        // 6. Return the complete DTO.
         return new ItemDTO(item);
     }
 
     @Transactional
     public ItemDTO sellItem(Long itemId, Long userId, ItemSellDTO sellDTO) {
         Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new EntityNotFoundException("Item not found with id: " + itemId));
+                .orElseThrow(() -> new ResourceNotFoundException("Item not found with id: " + itemId));
 
         if (!item.getCategory().getUser().getId().equals(userId)) {
-            throw new SecurityException("User not authorized to sell this item.");
+            throw new ResourceNotFoundException("Item not found with id: " + itemId + " for this user");
         }
 
         if (item.getStatus() == ItemStatus.SOLD) {
-            throw new IllegalStateException("Item with id " + itemId + " has already been sold.");
+            throw new BusinessException("Item with id " + itemId + " has already been sold.");
         }
 
         item.setSellPrice(sellDTO.getSellPrice());
@@ -120,10 +105,10 @@ public class ItemService {
     @Transactional(readOnly = true)
     public ItemDTO getById(Long itemId, Long userId){
         Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new EntityNotFoundException("Item not found with id: " + itemId));
+                .orElseThrow(() -> new ResourceNotFoundException("Item not found with id: " + itemId));
 
         if(!item.getCategory().getUser().getId().equals(userId)){
-            throw new SecurityException("ITem does not belong to this User");
+            throw new ResourceNotFoundException("Item not found with id: " + itemId + " for this user");
         }
 
         return new ItemDTO(item);
@@ -132,14 +117,14 @@ public class ItemService {
     @Transactional
     public void deleteById (Long itemId, Long userId){
         Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new EntityNotFoundException("Item not found with id: " + itemId));
+                .orElseThrow(() -> new ResourceNotFoundException("Item not found with id: " + itemId));
 
         if(!item.getCategory().getUser().getId().equals(userId)){
-            throw new SecurityException("ITem does not belong to this User");
+            throw new ResourceNotFoundException("Item not found with id: " + itemId + " for this user");
         }
 
         if(item.getStatus() == ItemStatus.SOLD){
-            throw new IllegalStateException("Cannot delete an item that has already been sold.");
+            throw new BusinessException("Cannot delete an item that has already been sold.");
         }
 
         itemRepository.deleteById(itemId);
@@ -148,10 +133,14 @@ public class ItemService {
     @Transactional
     public ItemDTO updateItem(Long itemId, Long userId, ItemUpdateDTO itemUpdateDTO) {
         Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new EntityNotFoundException("Item not found with id: " + itemId));
+                .orElseThrow(() -> new ResourceNotFoundException("Item not found with id: " + itemId));
 
         if (!item.getCategory().getUser().getId().equals(userId)) {
-            throw new SecurityException("User not authorized to update this item.");
+            throw new ResourceNotFoundException("Item not found with id: " + itemId + " for this user");
+        }
+
+        if (item.getStatus() != ItemStatus.AVAILABLE) {
+            throw new BusinessException("Only items with AVAILABLE status can be edited.");
         }
 
         if (itemUpdateDTO.getName() != null) {

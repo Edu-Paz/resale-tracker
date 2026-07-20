@@ -4,7 +4,8 @@ import com.resaletracker.financialapi.dtos.UserDTO;
 import com.resaletracker.financialapi.dtos.UserRegisterDTO;
 import com.resaletracker.financialapi.entities.User;
 import com.resaletracker.financialapi.repositories.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
+import com.resaletracker.financialapi.services.exceptions.BusinessException;
+import com.resaletracker.financialapi.services.exceptions.ResourceNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,17 +25,17 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserDTO findById(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
-        return new UserDTO(user.getId(), user.getUsername(), user.getBalance());
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+        return new UserDTO(user);
     }
 
     @Transactional
     public UserDTO registerUser(UserRegisterDTO userRegisterDTO) {
         if (!userRegisterDTO.getPassword().equals(userRegisterDTO.getPasswordConfirmation())) {
-            throw new IllegalArgumentException("Password do not match");
+            throw new BusinessException("Passwords do not match");
         }
         if (userRepository.existsByUsername(userRegisterDTO.getUsername())) {
-            throw new IllegalArgumentException("Username already exists");
+            throw new BusinessException("Username already exists");
         }
 
         User user = new User();
@@ -42,17 +43,15 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(userRegisterDTO.getPassword()));
         user.setBalance(BigDecimal.ZERO);
 
-        userRepository.save(user);
-        return new UserDTO(user.getId(), user.getUsername(), user.getBalance());
+        user = userRepository.save(user);
+        return new UserDTO(user);
     }
 
     @Transactional
     public void deleteUser(Long id) {
         if (!userRepository.existsById(id)) {
-            // Lança uma exceção se o usuário a ser deletado não existir.
-            throw new EntityNotFoundException("User not found with id: " + id);
+            throw new ResourceNotFoundException("User not found with id: " + id);
         }
         userRepository.deleteById(id);
     }
-
 }
