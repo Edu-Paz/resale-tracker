@@ -6,8 +6,8 @@ import com.resaletracker.financialapi.entities.Category;
 import com.resaletracker.financialapi.entities.User;
 import com.resaletracker.financialapi.repositories.CategoryRepository;
 import com.resaletracker.financialapi.repositories.UserRepository;
+import com.resaletracker.financialapi.services.exceptions.BusinessException;
 import com.resaletracker.financialapi.services.exceptions.ResourceNotFoundException;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,10 +39,14 @@ public class CategoryService {
 
     @Transactional
     public void deleteCategoryById(Long id, Long userId){
-        Long deletedCount = categoryRepository.deleteByIdAndUserId(id, userId);
-        if (deletedCount == 0) {
-            throw new ResourceNotFoundException("Category not found with id: " + id + " for the specified user.");
+        Category category = categoryRepository.findByIdAndUserId(id, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id + " for the specified user."));
+
+        if (!category.getItems().isEmpty()) {
+            throw new BusinessException("Cannot delete a category that contains items.");
         }
+
+        categoryRepository.delete(category);
     }
 
     @Transactional
