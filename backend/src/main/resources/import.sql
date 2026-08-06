@@ -1,6 +1,7 @@
 -- Users
 INSERT INTO tb_user (username, password, balance) VALUES ('john.doe', '$2a$10$eACCYoNOHEqXve8eIWT8CHOVAYufCR/7gD/oID1z2rDPOe9qATp_2', 1500.00);
 INSERT INTO tb_user (username, password, balance) VALUES ('jane.smith', '$2a$10$eACCYoNOHEqXve8eIWT8CHOVAYufCR/7gD/oID1z2rDPOe9qATp_2', 2500.50);
+INSERT INTO tb_user (username, password, balance) VALUES ('testuser', '$2a$10$sMHLX52NqDbb0ZobThENsuJDzAt7mtSQfkx4T.fQzvMIIohvmLnyK', 0.00);
 
 -- Categories for john.doe (user_id = 1)
 INSERT INTO tb_category (name, user_id) VALUES ('Electronics', 1);
