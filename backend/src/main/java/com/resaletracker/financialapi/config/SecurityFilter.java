@@ -26,14 +26,27 @@ public class SecurityFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        var token = this.recoverToken(request);
-        if (token != null) {
-            var username = tokenService.getUsernameFromToken(token);
-            UserDetails user = userRepository.findByUsername(username);
+        System.out.println("[SECURITY_FILTER] Processing request for URI: " + request.getRequestURI());
 
-            if (user != null) {
-                var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+        var token = this.recoverToken(request);
+        System.out.println("[SECURITY_FILTER] Recovered token: " + (token != null ? "YES" : "NO"));
+
+        if (token != null) {
+            boolean isTokenValid = tokenService.isTokenValid(token);
+            System.out.println("[SECURITY_FILTER] Token validity: " + isTokenValid);
+
+            if (isTokenValid) {
+                var username = tokenService.getUsernameFromToken(token);
+                System.out.println("[SECURITY_FILTER] Username from token: " + username);
+
+                UserDetails user = userRepository.findByUsername(username);
+                System.out.println("[SECURITY_FILTER] User found in repo: " + (user != null ? "YES" : "NO"));
+
+                if (user != null) {
+                    var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    System.out.println("[SECURITY_FILTER] SecurityContextHolder updated for user: " + username);
+                }
             }
         }
         filterChain.doFilter(request, response);
