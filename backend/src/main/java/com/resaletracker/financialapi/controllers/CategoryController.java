@@ -21,7 +21,7 @@ public class CategoryController {
     }
 
     @PostMapping
-    public ResponseEntity<CategoryDTO> createCategory (@Valid @RequestBody CategoryInsertDTO categoryInsertDTO){
+    public ResponseEntity<CategoryDTO> createCategory(@Valid @RequestBody CategoryInsertDTO categoryInsertDTO) {
         CategoryDTO newCategory = categoryService.createCategory(categoryInsertDTO);
         URI uri = ServletUriComponentsBuilder.fromCurrentContextPath().path("/categories/{id}")
                 .buildAndExpand(newCategory.getId()).toUri();
@@ -29,22 +29,20 @@ public class CategoryController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCategoryById (@PathVariable Long id, @RequestParam Long userId){
-        // TODO: Replace @RequestParam with authenticated user from Spring Security context
-        categoryService.deleteCategoryById(id, userId);
+    public ResponseEntity<Void> deleteCategoryById(@PathVariable Long id) {
+        categoryService.deleteCategoryById(id);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CategoryDTO> updateCategory (@PathVariable Long id, @RequestParam Long userId, @RequestBody @Valid CategoryDTO categoryDTO){
-        CategoryDTO updatedCategory = categoryService.updateCategory(id, userId, categoryDTO);
+    public ResponseEntity<CategoryDTO> updateCategory(@PathVariable Long id, @RequestBody @Valid CategoryDTO categoryDTO) {
+        CategoryDTO updatedCategory = categoryService.updateCategory(id, categoryDTO);
         return ResponseEntity.ok(updatedCategory);
     }
 
     @GetMapping
-    public ResponseEntity<List<CategoryDTO>> findAllCategoriesByUser(@RequestParam Long userId){
-        // TODO: Replace @RequestParam with authenticated user from Spring Security context
-        List<CategoryDTO> categories = categoryService.findAllCategoriesByUser(userId);
+    public ResponseEntity<List<CategoryDTO>> findAllCategoriesByUser() {
+        List<CategoryDTO> categories = categoryService.findAllCategoriesByUser();
         return ResponseEntity.ok(categories);
     }
 }

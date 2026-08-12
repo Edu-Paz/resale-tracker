@@ -1,6 +1,6 @@
 package com.resaletracker.financialapi.config;
 
-import com.resaletracker.financialapi.services.AuthorizationService;
+import com.resaletracker.financialapi.services.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -21,30 +21,26 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
 
-    // Removido @Autowired para securityFilter e authorizationService
-    // Serão injetados diretamente nos métodos @Bean onde são usados.
-
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, SecurityFilter securityFilter, AuthorizationService authorizationService) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, SecurityFilter securityFilter, CustomUserDetailsService customUserDetailsService) throws Exception {
         http
-                // Desabilitar CSRF para APIs RESTful que usam tokens (como JWT),
-                // pois a proteção CSRF baseada em sessão não é necessária e pode interferir.
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/auth/login", "/auth/register").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
-                        .anyRequest().hasAuthority("ROLE_USER")
+                        .anyRequest().authenticated()
                 )
-                .authenticationProvider(authenticationProvider(authorizationService))
-                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
+                .authenticationProvider(authenticationProvider(customUserDetailsService))
+                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
+                .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()));
 
         return http.build();
     }
 
     @Bean
-    public AuthenticationProvider authenticationProvider(AuthorizationService authorizationService) {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(authorizationService);
+    public AuthenticationProvider authenticationProvider(CustomUserDetailsService customUserDetailsService) {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(customUserDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }

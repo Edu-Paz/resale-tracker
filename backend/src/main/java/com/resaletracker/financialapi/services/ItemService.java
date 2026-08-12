@@ -7,9 +7,9 @@ import com.resaletracker.financialapi.dtos.ItemUpdateDTO;
 import com.resaletracker.financialapi.entities.Category;
 import com.resaletracker.financialapi.entities.Item;
 import com.resaletracker.financialapi.entities.ItemStatus;
+import com.resaletracker.financialapi.entities.User;
 import com.resaletracker.financialapi.repositories.CategoryRepository;
 import com.resaletracker.financialapi.repositories.ItemRepository;
-import com.resaletracker.financialapi.repositories.UserRepository;
 import com.resaletracker.financialapi.services.exceptions.BusinessException;
 import com.resaletracker.financialapi.services.exceptions.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
@@ -23,38 +23,33 @@ import java.util.List;
 public class ItemService {
     private final ItemRepository itemRepository;
     private final CategoryRepository categoryRepository;
-    private final UserRepository userRepository;
+    private final AuthService authService;
 
-    public ItemService(ItemRepository itemRepository, CategoryRepository categoryRepository, UserRepository userRepository) {
+    public ItemService(ItemRepository itemRepository, CategoryRepository categoryRepository, AuthService authService) {
         this.itemRepository = itemRepository;
         this.categoryRepository = categoryRepository;
-        this.userRepository = userRepository;
+        this.authService = authService;
     }
 
     @Transactional(readOnly = true)
-    public List<ItemDTO> findAllItemsByUser(Long userId, Long categoryId) {
-        if (!userRepository.existsById(userId)) {
-            throw new ResourceNotFoundException("User not found with id: " + userId);
-        }
-
+    public List<ItemDTO> findAllItemsByUser(Long categoryId) {
+        User user = authService.getAuthenticatedUser();
         List<Item> items;
         if (categoryId != null) {
-            categoryRepository.findByIdAndUserId(categoryId, userId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Category with id " + categoryId + " not found for user " + userId));
-            items = itemRepository.findAllByCategory_UserIdAndCategoryId(userId, categoryId);
+            categoryRepository.findByIdAndUserId(categoryId, user.getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Category with id " + categoryId + " not found for user " + user.getId()));
+            items = itemRepository.findAllByCategory_UserIdAndCategoryId(user.getId(), categoryId);
         } else {
-            items = itemRepository.findAllByCategory_UserId(userId);
+            items = itemRepository.findAllByCategory_UserId(user.getId());
         }
-
-        return items.stream()
-                .map(ItemDTO::new)
-                .toList();
+        return items.stream().map(ItemDTO::new).toList();
     }
 
     @Transactional
-    public ItemDTO createItem(ItemInsertDTO itemInsertDTO, Long userId) {
-        Category category = categoryRepository.findByIdAndUserId(itemInsertDTO.getCategoryId(), userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Category with id " + itemInsertDTO.getCategoryId() + " not found for user " + userId));
+    public ItemDTO createItem(ItemInsertDTO itemInsertDTO) {
+        User user = authService.getAuthenticatedUser();
+        Category category = categoryRepository.findByIdAndUserId(itemInsertDTO.getCategoryId(), user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Category with id " + itemInsertDTO.getCategoryId() + " not found for user " + user.getId()));
 
         Item item = new Item();
         item.setName(itemInsertDTO.getName());
@@ -63,21 +58,17 @@ public class ItemService {
         item.setBuyDate(itemInsertDTO.getBuyDate());
         item.setCategory(category);
         item.setStatus(ItemStatus.AVAILABLE);
-        item.setSellPrice(null);
-        item.setSellDate(null);
-        item.setProfit(null);
-        item.setMargin(null);
-
         item = itemRepository.save(item);
         return new ItemDTO(item);
     }
 
     @Transactional
-    public ItemDTO sellItem(Long itemId, Long userId, ItemSellDTO sellDTO) {
+    public ItemDTO sellItem(Long itemId, ItemSellDTO sellDTO) {
+        User user = authService.getAuthenticatedUser();
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("Item not found with id: " + itemId));
 
-        if (!item.getCategory().getUser().getId().equals(userId)) {
+        if (!item.getCategory().getUser().getId().equals(user.getId())) {
             throw new ResourceNotFoundException("Item not found with id: " + itemId + " for this user");
         }
 
@@ -103,11 +94,12 @@ public class ItemService {
     }
 
     @Transactional(readOnly = true)
-    public ItemDTO getById(Long itemId, Long userId){
+    public ItemDTO getById(Long itemId) {
+        User user = authService.getAuthenticatedUser();
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("Item not found with id: " + itemId));
 
-        if(!item.getCategory().getUser().getId().equals(userId)){
+        if (!item.getCategory().getUser().getId().equals(user.getId())) {
             throw new ResourceNotFoundException("Item not found with id: " + itemId + " for this user");
         }
 
@@ -115,15 +107,16 @@ public class ItemService {
     }
 
     @Transactional
-    public void deleteById (Long itemId, Long userId){
+    public void deleteById(Long itemId) {
+        User user = authService.getAuthenticatedUser();
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("Item not found with id: " + itemId));
 
-        if(!item.getCategory().getUser().getId().equals(userId)){
+        if (!item.getCategory().getUser().getId().equals(user.getId())) {
             throw new ResourceNotFoundException("Item not found with id: " + itemId + " for this user");
         }
 
-        if(item.getStatus() == ItemStatus.SOLD){
+        if (item.getStatus() == ItemStatus.SOLD) {
             throw new BusinessException("Cannot delete an item that has already been sold.");
         }
 
@@ -131,11 +124,12 @@ public class ItemService {
     }
 
     @Transactional
-    public ItemDTO updateItem(Long itemId, Long userId, ItemUpdateDTO itemUpdateDTO) {
+    public ItemDTO updateItem(Long itemId, ItemUpdateDTO itemUpdateDTO) {
+        User user = authService.getAuthenticatedUser();
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("Item not found with id: " + itemId));
 
-        if (!item.getCategory().getUser().getId().equals(userId)) {
+        if (!item.getCategory().getUser().getId().equals(user.getId())) {
             throw new ResourceNotFoundException("Item not found with id: " + itemId + " for this user");
         }
 
@@ -154,6 +148,11 @@ public class ItemService {
         }
         if (itemUpdateDTO.getBuyDate() != null) {
             item.setBuyDate(itemUpdateDTO.getBuyDate());
+        }
+        if (itemUpdateDTO.getCategoryId() != null) {
+            Category category = categoryRepository.findByIdAndUserId(itemUpdateDTO.getCategoryId(), user.getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Category with id " + itemUpdateDTO.getCategoryId() + " not found for user " + user.getId()));
+            item.setCategory(category);
         }
 
         return new ItemDTO(item);

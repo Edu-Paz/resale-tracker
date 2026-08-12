@@ -12,6 +12,4 @@ import lombok.NoArgsConstructor;
 public class CategoryInsertDTO {
     @NotBlank(message = "Category name cannot be blank")
     private String name;
-    @NotNull(message = "User ID cannot be null")
-    private Long userId;
 }
