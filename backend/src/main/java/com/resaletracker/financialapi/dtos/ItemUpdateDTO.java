@@ -19,4 +19,5 @@ public class ItemUpdateDTO {
     private BigDecimal buyPrice;
     @PastOrPresent(message = "Buy date cannot be in the future")
     private LocalDate buyDate;
+    private Long categoryId;
 }

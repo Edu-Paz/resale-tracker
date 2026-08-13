@@ -5,7 +5,6 @@ import com.resaletracker.financialapi.dtos.CategoryInsertDTO;
 import com.resaletracker.financialapi.entities.Category;
 import com.resaletracker.financialapi.entities.User;
 import com.resaletracker.financialapi.repositories.CategoryRepository;
-import com.resaletracker.financialapi.repositories.UserRepository;
 import com.resaletracker.financialapi.services.exceptions.BusinessException;
 import com.resaletracker.financialapi.services.exceptions.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
@@ -16,31 +15,28 @@ import java.util.List;
 @Service
 public class CategoryService {
     private final CategoryRepository categoryRepository;
-    private final UserRepository userRepository;
+    private final AuthService authService;
 
-    public CategoryService(CategoryRepository categoryRepository, UserRepository userRepository) {
+    public CategoryService(CategoryRepository categoryRepository, AuthService authService) {
         this.categoryRepository = categoryRepository;
-        this.userRepository = userRepository;
+        this.authService = authService;
     }
 
     @Transactional
     public CategoryDTO createCategory(CategoryInsertDTO categoryInsertDTO) {
-        User user = userRepository.findById(categoryInsertDTO.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + categoryInsertDTO.getUserId()));
-
+        User user = authService.getAuthenticatedUser();
         Category category = new Category();
         category.setName(categoryInsertDTO.getName());
         category.setUser(user);
-
         category = categoryRepository.save(category);
-
         return new CategoryDTO(category);
     }
 
     @Transactional
-    public void deleteCategoryById(Long id, Long userId){
-        Category category = categoryRepository.findByIdAndUserId(id, userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id + " for the specified user."));
+    public void deleteCategoryById(Long id) {
+        User user = authService.getAuthenticatedUser();
+        Category category = categoryRepository.findByIdAndUserId(id, user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id + " for the current user."));
 
         if (!category.getItems().isEmpty()) {
             throw new BusinessException("Cannot delete a category that contains items.");
@@ -50,9 +46,10 @@ public class CategoryService {
     }
 
     @Transactional
-    public CategoryDTO updateCategory(Long id, Long userId, CategoryDTO categoryDTO){
-        Category category = categoryRepository.findByIdAndUserId(id, userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id + " for the specified user."));
+    public CategoryDTO updateCategory(Long id, CategoryDTO categoryDTO) {
+        User user = authService.getAuthenticatedUser();
+        Category category = categoryRepository.findByIdAndUserId(id, user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id + " for the current user."));
 
         category.setName(categoryDTO.getName());
         category = categoryRepository.save(category);
@@ -60,11 +57,9 @@ public class CategoryService {
     }
     
     @Transactional(readOnly = true)
-    public List<CategoryDTO> findAllCategoriesByUser(Long userId){
-        if (!userRepository.existsById(userId)) {
-            throw new ResourceNotFoundException("User not found with id: " + userId);
-        }
-        List<Category> categories = categoryRepository.findAllByUserId(userId);
+    public List<CategoryDTO> findAllCategoriesByUser() {
+        User user = authService.getAuthenticatedUser();
+        List<Category> categories = categoryRepository.findAllByUserId(user.getId());
         return categories.stream().map(CategoryDTO::new).toList();
     }
 }
