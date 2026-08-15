@@ -1,184 +1,150 @@
-.counter {
-  font-size: 16px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  color: var(--accent);
-  background: var(--accent-bg);
-  border: 2px solid transparent;
-  transition: border-color 0.3s;
-  margin-bottom: 24px;
+/* 1. Paleta de Cores e Tipografia (do DESIGN.md) */
+:root {
+    /* Cores */
+    --kraft: #EDE6D6;
+    --card: #FBF8F0;
+    --ink: #1F2A24;
+    --ink-muted: #5C6B60;
+    --line: #D8CBB0;
+    --ochre: #C98A2C;
+    --profit: #2F6F4E;
+    --loss: #B23A32;
+    --profit-bg: #E4EEE7;
+    --loss-bg: #F5E5E2;
 
-  &:hover {
-    border-color: var(--accent-border);
-  }
-  &:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
+    /* Tipografia */
+    --font-serif: "IBM Plex Serif", serif;
+    --font-sans: "IBM Plex Sans", sans-serif;
+    --font-mono: "IBM Plex Mono", monospace;
 }
 
-.hero {
-  position: relative;
+/* 2. Estilos Base */
+body {
+    font-family: var(--font-sans);
+    margin: 0;
+    padding: 0;
+    background-color: var(--kraft);
+    color: var(--ink);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
 
-  .base,
-  .framework,
-  .vite {
-    inset-inline: 0;
+.container {
+    width: 90%;
+    max-width: 1100px;
     margin: 0 auto;
-  }
-
-  .base {
-    width: 170px;
-    position: relative;
-    z-index: 0;
-  }
-
-  .framework,
-  .vite {
-    position: absolute;
-  }
-
-  .framework {
-    z-index: 1;
-    top: 34px;
-    height: 28px;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
-      scale(1.4);
-  }
-
-  .vite {
-    z-index: 0;
-    top: 107px;
-    height: 26px;
-    width: auto;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
-      scale(0.8);
-  }
 }
 
-#center {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-  place-content: center;
-  place-items: center;
-  flex-grow: 1;
-
-  @media (max-width: 1024px) {
-    padding: 32px 20px 24px;
-    gap: 18px;
-  }
+/* 3. Layout Principal */
+.header {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--line);
+    background-color: var(--card);
 }
 
-#next-steps {
-  display: flex;
-  border-top: 1px solid var(--border);
-  text-align: left;
-
-  & > div {
-    flex: 1 1 0;
-    padding: 32px;
-    @media (max-width: 1024px) {
-      padding: 24px 20px;
-    }
-  }
-
-  .icon {
-    margin-bottom: 16px;
-    width: 22px;
-    height: 22px;
-  }
-
-  @media (max-width: 1024px) {
-    flex-direction: column;
-    text-align: center;
-  }
-}
-
-#docs {
-  border-right: 1px solid var(--border);
-
-  @media (max-width: 1024px) {
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-  }
-}
-
-#next-steps ul {
-  list-style: none;
-  padding: 0;
-  display: flex;
-  gap: 8px;
-  margin: 32px 0 0;
-
-  .logo {
-    height: 18px;
-  }
-
-  a {
-    color: var(--text-h);
-    font-size: 16px;
-    border-radius: 6px;
-    background: var(--social-bg);
+.header .container {
     display: flex;
-    padding: 6px 12px;
+    justify-content: space-between;
     align-items: center;
-    gap: 8px;
+    padding: 0; /* Container do header não precisa de padding vertical */
+}
+
+.logo {
+    font-family: var(--font-serif);
+    font-size: 1.25rem; /* 20px */
+    font-weight: 600;
+    color: var(--ink);
+}
+
+/* 4. Seção Hero */
+.hero {
+    background-color: var(--card);
+    text-align: center;
+    padding: 64px 24px;
+    border-bottom: 1px solid var(--line);
+}
+
+.hero h1 {
+    font-family: var(--font-serif);
+    font-size: 2rem; /* 32px */
+    font-weight: 700;
+    margin: 0 0 16px 0;
+}
+
+.hero p {
+    font-size: 0.9375rem; /* 15px */
+    max-width: 550px;
+    margin: 0 auto 32px auto;
+    color: var(--ink-muted);
+}
+
+.cta-button {
+    display: inline-block;
+    background-color: var(--ochre);
+    color: var(--card);
+    padding: 12px 24px;
+    font-size: 0.9375rem; /* 15px */
+    font-weight: 500;
     text-decoration: none;
-    transition: box-shadow 0.3s;
-
-    &:hover {
-      box-shadow: var(--shadow);
-    }
-    .button-icon {
-      height: 18px;
-      width: 18px;
-    }
-  }
-
-  @media (max-width: 1024px) {
-    margin-top: 20px;
-    flex-wrap: wrap;
-    justify-content: center;
-
-    li {
-      flex: 1 1 calc(50% - 8px);
-    }
-
-    a {
-      width: 100%;
-      justify-content: center;
-      box-sizing: border-box;
-    }
-  }
+    border-radius: 6px;
+    transition: background-color 0.3s ease;
 }
 
-#spacer {
-  height: 88px;
-  border-top: 1px solid var(--border);
-  @media (max-width: 1024px) {
-    height: 48px;
-  }
+.cta-button:hover {
+    background-color: #a87324; /* --ochre escurecido */
 }
 
-.ticks {
-  position: relative;
-  width: 100%;
+/* 5. Seção de Funcionalidades */
+.features {
+    padding: 64px 0;
+}
 
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    top: -4.5px;
-    border: 5px solid transparent;
-  }
+.features h2 {
+    font-family: var(--font-serif);
+    text-align: center;
+    font-size: 1.5rem; /* 24px */
+    font-weight: 600;
+    margin: 0 0 48px 0;
+}
 
-  &::before {
-    left: 0;
-    border-left-color: var(--border);
-  }
-  &::after {
-    right: 0;
-    border-right-color: var(--border);
-  }
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+.feature-card {
+    background-color: var(--card);
+    padding: 24px;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+}
+
+.feature-card h3 {
+    font-family: var(--font-sans);
+    font-size: 1.125rem; /* 18px */
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    color: var(--ink);
+}
+
+.feature-card p {
+    font-size: 0.9375rem; /* 15px */
+    color: var(--ink-muted);
+    margin: 0;
+}
+
+/* 6. Rodapé */
+.footer {
+    color: var(--ink-muted);
+    text-align: center;
+    padding: 32px 0;
+    margin-top: 32px;
+    border-top: 1px solid var(--line);
+    font-size: 0.8125rem; /* 13px */
+}
+
+.footer .container {
+    padding: 0;
 }
