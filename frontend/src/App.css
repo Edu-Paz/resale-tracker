@@ -1,6 +1,4 @@
-/* 1. Paleta de Cores e Tipografia (do DESIGN.md) */
 :root {
-    /* Cores */
     --kraft: #EDE6D6;
     --card: #FBF8F0;
     --ink: #1F2A24;
@@ -12,20 +10,18 @@
     --profit-bg: #E4EEE7;
     --loss-bg: #F5E5E2;
 
-    /* Tipografia */
     --font-serif: "IBM Plex Serif", serif;
     --font-sans: "IBM Plex Sans", sans-serif;
     --font-mono: "IBM Plex Mono", monospace;
 }
 
-/* 2. Estilos Base */
 body {
     font-family: var(--font-sans);
     margin: 0;
     padding: 0;
     background-color: var(--kraft);
     color: var(--ink);
-    line-height: 1.6;
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -57,12 +53,28 @@ body {
     color: var(--ink);
 }
 
+.logo-button {
+    border: 0;
+    padding: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
 /* 4. Seção Hero */
 .hero {
     background-color: var(--card);
     text-align: center;
-    padding: 64px 24px;
+    padding: 80px 24px 72px;
     border-bottom: 1px solid var(--line);
+}
+
+.eyebrow {
+    color: var(--ochre);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin: 0 0 16px;
 }
 
 .hero h1 {
@@ -72,11 +84,18 @@ body {
     margin: 0 0 16px 0;
 }
 
-.hero p {
+.hero-description {
     font-size: 0.9375rem; /* 15px */
     max-width: 550px;
-    margin: 0 auto 32px auto;
+    margin: 0 auto 32px;
     color: var(--ink-muted);
+}
+
+.hero-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
 }
 
 .cta-button {
@@ -88,11 +107,32 @@ body {
     font-weight: 500;
     text-decoration: none;
     border-radius: 6px;
-    transition: background-color 0.3s ease;
+    border: 1px solid var(--ochre);
+    cursor: pointer;
+    transition: background-color 120ms ease-out, border-color 120ms ease-out;
 }
 
 .cta-button:hover {
-    background-color: #a87324; /* --ochre escurecido */
+    background-color: #a87324;
+    border-color: #a87324;
+}
+
+.secondary-button {
+    display: inline-block;
+    background-color: transparent;
+    color: var(--ink);
+    padding: 12px 24px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background-color 120ms ease-out, border-color 120ms ease-out;
+}
+
+.secondary-button:hover {
+    background-color: var(--kraft);
+    border-color: var(--ochre);
 }
 
 /* 5. Seção de Funcionalidades */
@@ -121,6 +161,14 @@ body {
     border: 1px solid var(--line);
 }
 
+.feature-index {
+    display: block;
+    color: var(--ink-muted);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    margin-bottom: 24px;
+}
+
 .feature-card h3 {
     font-family: var(--font-sans);
     font-size: 1.125rem; /* 18px */
@@ -147,4 +195,120 @@ body {
 
 .footer .container {
     padding: 0;
+}
+
+.auth-main {
+    display: grid;
+    place-items: center;
+    flex: 1;
+    padding: 48px 24px 64px;
+}
+
+.auth-card {
+    width: min(100%, 440px);
+    box-sizing: border-box;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 32px;
+    box-shadow: 0 1px 2px rgba(31, 42, 36, 0.06);
+}
+
+.auth-card h1 {
+    font-family: var(--font-serif);
+    font-size: 2rem;
+    margin: 0 0 8px;
+}
+
+.auth-intro {
+    color: var(--ink-muted);
+    margin: 0 0 28px;
+}
+
+.auth-form {
+    display: grid;
+    gap: 16px;
+}
+
+.auth-form label {
+    display: grid;
+    gap: 6px;
+    color: var(--ink);
+    font-size: 0.8125rem;
+    font-weight: 500;
+}
+
+.auth-form input {
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    color: var(--ink);
+    font: 400 0.9375rem var(--font-sans);
+    padding: 11px 12px;
+    transition: border-color 120ms ease-out;
+}
+
+.auth-form input:focus {
+    border-color: var(--ochre);
+    outline: 2px solid var(--ochre);
+    outline-offset: 1px;
+}
+
+.auth-form input::placeholder {
+    color: var(--ink-muted);
+}
+
+.form-submit {
+    width: 100%;
+    margin-top: 8px;
+}
+
+.auth-switch {
+    color: var(--ink-muted);
+    font-size: 0.9375rem;
+    margin: 24px 0 0;
+    text-align: center;
+}
+
+.auth-switch a {
+    color: var(--ink);
+    font-weight: 500;
+    text-decoration-color: var(--ochre);
+    text-underline-offset: 3px;
+}
+
+:focus-visible {
+    outline: 2px solid var(--ochre);
+    outline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+    .hero {
+        padding: 56px 20px 48px;
+    }
+
+    .hero h1 {
+        font-size: 1.75rem;
+    }
+
+    .features {
+        padding: 48px 0;
+    }
+
+    .features-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .auth-card {
+        padding: 24px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+    }
 }
