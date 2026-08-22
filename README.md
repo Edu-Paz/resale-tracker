@@ -102,7 +102,6 @@ Maven does not need to be installed globally because the backend includes the Ma
 git clone git@github.com:Edu-Paz/resale-tracker.git
 cd resale-tracker
 ```
-
 ### 2. Start the backend
 
 Open a terminal in the backend directory:
@@ -220,7 +219,7 @@ http://localhost:8080
 
 | Method | Endpoint | Access | Purpose |
 | --- | --- | --- | --- |
-| `POST` | `/auth/register` | Public | Creates a user account. |
+| `POST` | `/users/register` | Public | Creates a user account. |
 | `POST` | `/auth/login` | Public | Authenticates a user and returns a JWT. |
 
 ### Users

@@ -10,7 +10,6 @@ All endpoints except `/auth/login` and `/auth/register` require a JWT token in t
 Authorization: Bearer <your-jwt-token>
 ```
 
----
 
 ## Endpoints
 
@@ -18,7 +17,7 @@ Authorization: Bearer <your-jwt-token>
 
 #### Register User
 ```http
-POST /auth/register
+POST /users/register
 Content-Type: application/json
 ```
 
