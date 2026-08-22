@@ -48,3 +48,19 @@ export function getCurrentUser(token) {
     },
   })
 }
+
+export function getItems(token) {
+  return request('/items', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+}
+
+export function getCategories(token) {
+  return request('/categories', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+}
