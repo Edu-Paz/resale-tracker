@@ -1,0 +1,59 @@
+:root {
+  --kraft: #EDE6D6;
+  --card: #FBF8F0;
+  --ink: #1F2A24;
+  --ink-muted: #5C6B60;
+  --line: #D8CBB0;
+  --ochre: #C98A2C;
+  --focus: #9A651A;
+  --font-serif: "IBM Plex Serif", Georgia, serif;
+  --font-sans: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", Consolas, monospace;
+  font-family: var(--font-sans);
+  color: var(--ink);
+  background: var(--kraft);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: var(--kraft);
+  color: var(--ink);
+  line-height: 1.6;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+#root {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  width: min(90%, 1100px);
+  margin: 0 auto;
+}
