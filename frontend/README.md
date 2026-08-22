@@ -4,35 +4,14 @@ A Spring Boot REST API for tracking resale items, categories, and financial metr
 
 ## Tech Stack
 
-- **Java 21**
-- **Spring Boot 4.1.0**
-- **Spring Security 6.x** - JWT-based authentication
-- **Spring Data JPA** - Database ORM
-- **PostgreSQL** - Production database
-- **H2 Database** - Development/testing database
-- **Lombok** - Reduce boilerplate code
-- **JWT (jjwt 0.11.5)** - Token-based authentication
-- **Maven** - Build tool
 
 ## Features
 
-- User registration and authentication with JWT tokens
-- Category management (CRUD operations)
-- Item inventory management (CRUD operations)
-- Item selling with automatic profit and margin calculation
-- User balance tracking
-- Role-based access control (USER role)
-- H2 Console for development database access
-- Request validation with Jakarta Validation
-- Global exception handling
 
 ## Installation
 
 ### Prerequisites
 
-- Java 21 or higher
-- Maven 3.6+
-- PostgreSQL (for production)
 
 ### Setup
 
@@ -445,10 +424,6 @@ Content-Type: application/json
 ```
 
 **Note**: When an item is sold:
-- Status changes to `SOLD`
-- Profit is calculated: `sellPrice - buyPrice`
-- Margin is calculated: `(profit / buyPrice) * 100`
-- User balance is updated with the profit
 
 #### Delete Item
 ```http
@@ -461,73 +436,30 @@ Authorization: Bearer <token>
 ## Data Models
 
 ### User
-- `id`: Long (auto-generated)
-- `username`: String (unique, 3-20 characters)
-- `password`: String (hashed with BCrypt)
-- `balance`: BigDecimal
-- `categories`: Set of Category (one-to-many relationship)
 
 ### Category
-- `id`: Long (auto-generated)
-- `name`: String
-- `user`: User (many-to-one relationship)
-- `items`: List of Item (one-to-many relationship)
 
 ### Item
-- `id`: Long (auto-generated)
-- `name`: String
-- `imgUrl`: String (optional)
-- `buyPrice`: BigDecimal
-- `sellPrice`: BigDecimal (nullable)
-- `buyDate`: LocalDate
-- `sellDate`: LocalDate (nullable)
-- `status`: ItemStatus (AVAILABLE or SOLD)
-- `profit`: BigDecimal (calculated on sale)
-- `margin`: BigDecimal (calculated on sale)
-- `category`: Category (many-to-one relationship)
 
 ### ItemStatus (Enum)
-- `AVAILABLE`: Item is in stock and available for sale
-- `SOLD`: Item has been sold
 
 ## DTOs (Data Transfer Objects)
 
 ### Authentication DTOs
-- `LoginRequestDTO`: username, password
-- `LoginResponseDTO`: token
 
 ### User DTOs
-- `UserRegisterDTO`: username, password, passwordConfirmation
-- `UserDTO`: id, username, balance
 
 ### Category DTOs
-- `CategoryInsertDTO`: name
-- `CategoryDTO`: id, name, user
 
 ### Item DTOs
-- `ItemInsertDTO`: name, imgUrl, buyPrice, buyDate, categoryId
-- `ItemUpdateDTO`: name, imgUrl, buyPrice, buyDate, categoryId
-- `ItemSellDTO`: sellPrice, sellDate
-- `ItemDTO`: All item fields including calculated profit and margin
 
 ## Security
 
 ### JWT Configuration
-- Secret key configured in `application.properties`
-- Token expiration: 24 hours (86400000 ms)
-- Tokens are signed using HMAC SHA algorithm
 
 ### Security Rules
-- `/auth/login` and `/auth/register` are publicly accessible
-- `/h2-console/**` is accessible for development
-- All other endpoints require authentication
-- Users can only access their own data (categories, items, user profile)
-- Role-based access: All authenticated users have `ROLE_USER`
 
 ### Password Security
-- Passwords are hashed using BCrypt encoder
-- Minimum password length: 6 characters
-- Password confirmation required during registration
 
 ## Error Handling
 
@@ -545,13 +477,6 @@ The API uses global exception handling with standardized error responses:
 ```
 
 ### Common HTTP Status Codes
-- `200 OK`: Request successful
-- `201 Created`: Resource created successfully
-- `204 No Content`: Successful deletion
-- `400 Bad Request`: Validation error or invalid request
-- `403 Forbidden`: Authentication failed or access denied
-- `404 Not Found`: Resource not found
-- `500 Internal Server Error`: Server error
 
 ## Development
 
@@ -562,9 +487,6 @@ http://localhost:8080/h2-console
 ```
 
 **Connection Details:**
-- JDBC URL: `jdbc:h2:mem:testdb`
-- Username: `sa`
-- Password: (leave empty)
 
 ### Running Tests
 ```bash
