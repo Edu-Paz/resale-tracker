@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react'
 import SiteHeader from './components/SiteHeader'
 import AuthPage from './pages/AuthPage'
 import HomePage from './pages/HomePage'
+import UserPage from './pages/UserPage'
 import { getRoute, routes } from './routes/appRoutes'
+import { saveToken } from './services/session'
 import './index.css'
 
 function App() {
@@ -22,9 +24,13 @@ function App() {
   return (
     <>
       <SiteHeader homePath={routes.home} onNavigate={navigate} />
-      {route === 'login' && <AuthPage type="login" onNavigate={navigate} />}
+      {route === 'login' && <AuthPage type="login" onNavigate={navigate} onAuthSuccess={(token) => {
+        saveToken(token)
+        navigate(routes.user)
+      }} />}
       {route === 'register' && <AuthPage type="register" onNavigate={navigate} />}
       {route === 'home' && <HomePage onNavigate={navigate} />}
+      {route === 'user' && <UserPage onNavigate={navigate} />}
     </>
   )
 }

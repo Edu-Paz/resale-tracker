@@ -6,6 +6,10 @@
   --line: #D8CBB0;
   --ochre: #C98A2C;
   --focus: #9A651A;
+  --loss: #B23A32;
+  --loss-bg: #F5E5E2;
+  --profit: #2F6F4E;
+  --profit-bg: #E4EEE7;
   --font-serif: "IBM Plex Serif", Georgia, serif;
   --font-sans: "IBM Plex Sans", "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", Consolas, monospace;

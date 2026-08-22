@@ -13,7 +13,7 @@ const authContent = {
   },
 }
 
-function AuthPage({ type, onNavigate }) {
+function AuthPage({ type, onNavigate, onAuthSuccess }) {
   const content = authContent[type]
 
   return (
@@ -22,7 +22,7 @@ function AuthPage({ type, onNavigate }) {
         <p className="eyebrow">Resale Tracker / {content.eyebrow}</p>
         <h1 id="auth-title">{content.title}</h1>
         <p className="auth-intro">{content.intro}</p>
-        <AuthForm type={type} onNavigate={onNavigate} />
+        <AuthForm type={type} onNavigate={onNavigate} onAuthSuccess={onAuthSuccess} />
       </section>
     </main>
   )
