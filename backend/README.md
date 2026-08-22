@@ -111,7 +111,7 @@ Authorization: Bearer <your-jwt-token>
 
 #### Register User
 ```http
-POST /auth/register
+POST /users/register
 Content-Type: application/json
 
 {
@@ -150,7 +150,6 @@ Content-Type: application/json
 
 **Error Response**: `403 Forbidden`
 ```json
-{
   "message": "Authentication failed: Bad credentials"
 }
 ```
@@ -518,7 +517,7 @@ Authorization: Bearer <token>
 - Tokens are signed using HMAC SHA algorithm
 
 ### Security Rules
-- `/auth/login` and `/auth/register` are publicly accessible
+- `/auth/login` and `/users/register` are publicly accessible
 - `/h2-console/**` is accessible for development
 - All other endpoints require authentication
 - Users can only access their own data (categories, items, user profile)
