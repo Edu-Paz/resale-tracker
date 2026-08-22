@@ -64,3 +64,23 @@ export function getCategories(token) {
     },
   })
 }
+
+export function createItem(token, item) {
+  return request('/items', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(item),
+  })
+}
+
+export function createCategory(token, category) {
+  return request('/categories', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(category),
+  })
+}

@@ -1,13 +1,56 @@
 import { useEffect, useState } from 'react'
-import { ApiError, getCategories, getCurrentUser, getItems } from '../services/api'
+import { ApiError, createCategory, createItem, getCategories, getCurrentUser, getItems } from '../services/api'
 import { clearToken, getToken } from '../services/session'
 import { routes } from '../routes/appRoutes'
+
+function getFormErrorMessage(error) {
+  if (error instanceof ApiError) return error.message
+  return 'Não foi possível concluir a operação. Tente novamente.'
+}
+
+function formatDateInput(value) {
+  const digits = value.replace(/\D/g, '').slice(0, 8)
+  if (digits.length <= 2) return digits
+  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`
+  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`
+}
+
+function parseBrazilianDate(value) {
+  const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value)
+  if (!match) return null
+
+  const [, day, month, year] = match
+  const date = new Date(Number(year), Number(month) - 1, Number(day))
+  if (date.getFullYear() !== Number(year) || date.getMonth() !== Number(month) - 1 || date.getDate() !== Number(day)) return null
+
+  return `${year}-${month}-${day}`
+}
+
+function validateBrazilianDateInput(event) {
+  const input = event.currentTarget
+  const value = input.value
+
+  if (!value) {
+    input.setCustomValidity('Informe a data da compra.')
+  } else if (!parseBrazilianDate(value)) {
+    input.setCustomValidity('Digite uma data válida no formato DD/MM/AAAA.')
+  } else {
+    input.setCustomValidity('')
+  }
+}
 
 function UserPage({ onNavigate }) {
   const [user, setUser] = useState(null)
   const [items, setItems] = useState([])
   const [categories, setCategories] = useState([])
   const [errorMessage, setErrorMessage] = useState('')
+  const [activeTab, setActiveTab] = useState('overview')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formMessage, setFormMessage] = useState(null)
+  const [quickCategoryOpen, setQuickCategoryOpen] = useState(false)
+  const [quickCategoryName, setQuickCategoryName] = useState('')
+  const [itemCategory, setItemCategory] = useState('')
+  const [buyDate, setBuyDate] = useState('')
 
   useEffect(() => {
     const token = getToken()
@@ -35,6 +78,89 @@ function UserPage({ onNavigate }) {
   function handleLogout() {
     clearToken()
     onNavigate(routes.login)
+  }
+
+  async function handleCategorySubmit(event) {
+    event.preventDefault()
+    if (isSubmitting) return
+
+    const form = event.currentTarget
+    const token = getToken()
+    setIsSubmitting(true)
+    setFormMessage(null)
+
+    try {
+      const category = await createCategory(token, { name: new FormData(form).get('name').trim() })
+      setCategories((currentCategories) => [...currentCategories, category])
+      setFormMessage({ type: 'success', text: 'Categoria criada com sucesso.' })
+      form.reset()
+    } catch (error) {
+      setFormMessage({ type: 'error', text: getFormErrorMessage(error) })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  async function handleQuickCategorySubmit() {
+    if (isSubmitting) return
+
+    const token = getToken()
+    setIsSubmitting(true)
+    setFormMessage(null)
+
+    try {
+      const category = await createCategory(token, { name: quickCategoryName.trim() })
+      setCategories((currentCategories) => [...currentCategories, category])
+      setItemCategory(String(category.id))
+      setQuickCategoryName('')
+      setQuickCategoryOpen(false)
+      setFormMessage({ type: 'success', text: 'Categoria criada e selecionada.' })
+    } catch (error) {
+      setFormMessage({ type: 'error', text: getFormErrorMessage(error) })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  async function handleItemSubmit(event) {
+    event.preventDefault()
+    if (isSubmitting) return
+
+    const form = event.currentTarget
+    const formData = new FormData(form)
+    const token = getToken()
+    const buyDateInput = form.elements.buyDate
+    const parsedBuyDate = parseBrazilianDate(buyDate)
+    const today = new Date().toISOString().slice(0, 10)
+    if (!parsedBuyDate || parsedBuyDate > today) {
+      buyDateInput.setCustomValidity(parsedBuyDate ? 'A data não pode ser futura.' : 'Digite uma data válida no formato DD/MM/AAAA.')
+      buyDateInput.reportValidity()
+      return
+    }
+    buyDateInput.setCustomValidity('')
+    const item = {
+      name: formData.get('name').trim(),
+      buyPrice: Number(formData.get('buyPrice')),
+      buyDate: parsedBuyDate,
+      categoryId: Number(formData.get('categoryId')),
+    }
+    const imgUrl = formData.get('imgUrl').trim()
+    if (imgUrl) item.imgUrl = imgUrl
+
+    setIsSubmitting(true)
+    setFormMessage(null)
+    try {
+      const newItem = await createItem(token, item)
+      setItems((currentItems) => [...currentItems, newItem])
+      setFormMessage({ type: 'success', text: 'Item adicionado ao estoque.' })
+      form.reset()
+      setItemCategory('')
+      setBuyDate('')
+    } catch (error) {
+      setFormMessage({ type: 'error', text: getFormErrorMessage(error) })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   if (errorMessage) {
@@ -68,7 +194,13 @@ function UserPage({ onNavigate }) {
           <button className="secondary-button" type="button" onClick={handleLogout}>Sair</button>
         </section>
 
-        <section className="metric-grid" aria-label="Resumo financeiro">
+        <nav className="dashboard-tabs" aria-label="Navegação do painel">
+          <button className={activeTab === 'overview' ? 'dashboard-tab active' : 'dashboard-tab'} type="button" onClick={() => setActiveTab('overview')}>Visão geral</button>
+          <button className={activeTab === 'item' ? 'dashboard-tab active' : 'dashboard-tab'} type="button" onClick={() => setActiveTab('item')}>Adicionar item</button>
+          <button className={activeTab === 'category' ? 'dashboard-tab active' : 'dashboard-tab'} type="button" onClick={() => setActiveTab('category')}>Categorias</button>
+        </nav>
+
+        {activeTab === 'overview' && <section className="metric-grid" aria-label="Resumo financeiro">
           <article className="metric-card metric-card-highlight">
             <span className="user-label">Saldo acumulado</span>
             <strong>{formatCurrency(user.balance)}</strong>
@@ -89,9 +221,53 @@ function UserPage({ onNavigate }) {
             <strong>{formatCurrency(totalInvested)}</strong>
             <span className="metric-detail">{items.length} {items.length === 1 ? 'item cadastrado' : 'itens cadastrados'}</span>
           </article>
-        </section>
+        </section>}
 
-        <div className="dashboard-columns">
+        {activeTab === 'item' && (
+          <section className="dashboard-panel form-panel" aria-labelledby="new-item-title">
+            <div className="panel-heading">
+              <div>
+                <p className="eyebrow">Estoque</p>
+                <h2 id="new-item-title">Adicionar item</h2>
+              </div>
+            </div>
+            <form className="dashboard-form" onSubmit={handleItemSubmit}>
+              <label>Nome do item<input name="name" placeholder="Ex.: Jaqueta jeans" required /></label>
+              <div className="form-grid">
+                <label>Preço de compra<input name="buyPrice" type="number" min="0.01" step="0.01" placeholder="0,00" required /></label>
+                <label>Data da compra<input name="buyDate" type="text" inputMode="numeric" placeholder="DD/MM/AAAA" value={buyDate} onChange={(event) => { setBuyDate(formatDateInput(event.target.value)); event.currentTarget.setCustomValidity('') }} onInvalid={validateBrazilianDateInput} maxLength="10" required /></label>
+              </div>
+              <label>Imagem <span className="optional-label">(opcional)</span><input name="imgUrl" type="url" placeholder="https://..." /></label>
+              <label>Categoria
+                <div className="category-select-row">
+                  <select name="categoryId" value={itemCategory} onChange={(event) => setItemCategory(event.target.value)} required>
+                    <option value="" disabled>Selecione uma categoria</option>
+                    {categories.map((category) => <option value={category.id} key={category.id}>{category.name}</option>)}
+                  </select>
+                  <button className="inline-action" type="button" onClick={() => setQuickCategoryOpen((open) => !open)}>{quickCategoryOpen ? 'Fechar' : '+ Nova categoria'}</button>
+                </div>
+              </label>
+              {quickCategoryOpen && <div className="quick-category"><label>Nome da nova categoria<input value={quickCategoryName} onChange={(event) => setQuickCategoryName(event.target.value)} placeholder="Ex.: Calçados" required /></label><button className="secondary-button" type="button" onClick={handleQuickCategorySubmit} disabled={isSubmitting || !quickCategoryName.trim()}>Criar categoria</button></div>}
+              {formMessage && <p className={`form-message form-${formMessage.type}`} role={formMessage.type === 'error' ? 'alert' : 'status'}>{formMessage.text}</p>}
+              <button className="cta-button" type="submit" disabled={isSubmitting || categories.length === 0}>{isSubmitting ? 'Salvando...' : 'Adicionar ao estoque'}</button>
+              {categories.length === 0 && <p className="form-hint">Crie uma categoria antes de adicionar um item.</p>}
+            </form>
+          </section>
+        )}
+
+        {activeTab === 'category' && (
+          <section className="dashboard-panel form-panel" aria-labelledby="new-category-title">
+            <div className="panel-heading"><div><p className="eyebrow">Organização</p><h2 id="new-category-title">Criar categoria</h2></div><span className="panel-count">{categories.length}</span></div>
+            <form className="dashboard-form category-form" onSubmit={handleCategorySubmit}>
+              <label>Nome da categoria<input name="name" placeholder="Ex.: Eletrônicos" required /></label>
+              {formMessage && <p className={`form-message form-${formMessage.type}`} role={formMessage.type === 'error' ? 'alert' : 'status'}>{formMessage.text}</p>}
+              <button className="cta-button" type="submit" disabled={isSubmitting}>{isSubmitting ? 'Salvando...' : 'Criar categoria'}</button>
+            </form>
+            <div className="category-list">{categories.map((category) => <span key={category.id}>{category.name}</span>)}</div>
+          </section>
+        )}
+
+        {activeTab === 'overview' && <div className="dashboard-columns">
           <section className="dashboard-panel" aria-labelledby="available-title">
             <div className="panel-heading">
               <div>
@@ -143,12 +319,12 @@ function UserPage({ onNavigate }) {
               </div>
             )}
           </section>
-        </div>
+        </div>}
 
-        <section className="dashboard-footer" aria-label="Resumo da conta">
+        {activeTab === 'overview' && <section className="dashboard-footer" aria-label="Resumo da conta">
           <span><strong>{categories.length}</strong> {categories.length === 1 ? 'categoria criada' : 'categorias criadas'}</span>
           <span><strong>{availableItems.length}</strong> {availableItems.length === 1 ? 'item aguardando venda' : 'itens aguardando venda'}</span>
-        </section>
+        </section>}
       </div>
     </main>
   )
