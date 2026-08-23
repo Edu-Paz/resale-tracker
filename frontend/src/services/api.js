@@ -9,12 +9,13 @@ export class ApiError extends Error {
 }
 
 async function request(path, options = {}) {
+  const { headers, ...rest } = options
   const response = await fetch(`${API_URL}${path}`, {
+    ...rest,
     headers: {
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...headers,
     },
-    ...options,
   })
 
   const contentType = response.headers.get('content-type') || ''
@@ -51,6 +52,7 @@ export function getCurrentUser(token) {
 
 export function getItems(token) {
   return request('/items', {
+    method: 'GET',
     headers: {
       Authorization: `Bearer ${token}`,
     },
