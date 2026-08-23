@@ -86,3 +86,22 @@ export function createCategory(token, category) {
     body: JSON.stringify(category),
   })
 }
+
+export function sellItem(token, itemId, sellData) {
+  return request(`/items/${itemId}/sell`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(sellData),
+  })
+}
+
+export function deleteItem(token, itemId) {
+  return request(`/items/${itemId}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+}

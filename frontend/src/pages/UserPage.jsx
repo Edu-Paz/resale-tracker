@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { ApiError, createCategory, createItem, getCategories, getCurrentUser, getItems } from '../services/api'
+import { ApiError, createCategory, createItem, getCategories, getCurrentUser, getItems, sellItem } from '../services/api'
 import { clearToken, getToken } from '../services/session'
 import { routes } from '../routes/appRoutes'
+import ResultBadge from '../components/ResultBadge'
 
 function getFormErrorMessage(error) {
   if (error instanceof ApiError) return error.message
@@ -51,6 +52,11 @@ function UserPage({ onNavigate }) {
   const [quickCategoryName, setQuickCategoryName] = useState('')
   const [itemCategory, setItemCategory] = useState('')
   const [buyDate, setBuyDate] = useState('')
+  const [sellingItem, setSellingItem] = useState(null)
+  const [sellPrice, setSellPrice] = useState('')
+  const [sellDate, setSellDate] = useState('')
+  const [isSelling, setIsSelling] = useState(false)
+  const [sellMessage, setSellMessage] = useState(null)
 
   useEffect(() => {
     const token = getToken()
@@ -119,6 +125,57 @@ function UserPage({ onNavigate }) {
       setFormMessage({ type: 'error', text: getFormErrorMessage(error) })
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  function openSellModal(item) {
+    setSellingItem(item)
+    setSellPrice('')
+    setSellDate('')
+  }
+
+  function closeSellModal() {
+    setSellingItem(null)
+    setSellPrice('')
+    setSellDate('')
+    setSellMessage(null)
+  }
+
+  async function handleSellSubmit(event) {
+    event.preventDefault()
+    if (isSelling || !sellingItem) return
+
+    const token = getToken()
+    const parsedSellDate = parseBrazilianDate(sellDate)
+    const today = new Date().toISOString().slice(0, 10)
+
+    if (!parsedSellDate || parsedSellDate > today) {
+      setSellMessage({ type: 'error', text: 'Data de venda inválida ou futura.' })
+      return
+    }
+
+    const price = Number(sellPrice)
+    if (!Number.isFinite(price) || price <= 0) {
+      setSellMessage({ type: 'error', text: 'Preço de venda deve ser maior que zero.' })
+      return
+    }
+
+    setIsSelling(true)
+    setSellMessage(null)
+
+    try {
+      const updatedItem = await sellItem(token, sellingItem.id, {
+        sellPrice: price,
+        sellDate: parsedSellDate,
+      })
+      setItems((currentItems) => currentItems.map((item) => (item.id === updatedItem.id ? updatedItem : item)))
+      const currentUser = await getCurrentUser(token)
+      setUser(currentUser)
+      closeSellModal()
+    } catch (error) {
+      setSellMessage({ type: 'error', text: getFormErrorMessage(error) })
+    } finally {
+      setIsSelling(false)
     }
   }
 
@@ -200,6 +257,27 @@ function UserPage({ onNavigate }) {
           <button className={activeTab === 'category' ? 'dashboard-tab active' : 'dashboard-tab'} type="button" onClick={() => setActiveTab('category')}>Categorias</button>
         </nav>
 
+        {sellingItem && (
+          <section className="dashboard-panel form-panel" aria-labelledby="sell-item-title">
+            <div className="panel-heading">
+              <div>
+                <p className="eyebrow">Registrar venda</p>
+                <h2 id="sell-item-title">Vender «{sellingItem.name}»</h2>
+              </div>
+              <button className="inline-action" type="button" onClick={closeSellModal}>Cancelar</button>
+            </div>
+            <form className="dashboard-form" onSubmit={handleSellSubmit}>
+              <label>Preço de compra<strong className="sell-readonly">{formatCurrency(sellingItem.buyPrice)}</strong></label>
+              <div className="form-grid">
+                <label>Preço de venda<input name="sellPrice" type="number" min="0.01" step="0.01" placeholder="0,00" value={sellPrice} onChange={(event) => { setSellPrice(event.target.value); setSellMessage(null) }} required /></label>
+                <label>Data da venda<input name="sellDate" type="text" inputMode="numeric" placeholder="DD/MM/AAAA" value={sellDate} onChange={(event) => { setSellDate(formatDateInput(event.target.value)); setSellMessage(null) }} onInvalid={validateBrazilianDateInput} maxLength="10" required /></label>
+              </div>
+              {sellMessage && <p className={`form-message form-${sellMessage.type}`} role={sellMessage.type === 'error' ? 'alert' : 'status'}>{sellMessage.text}</p>}
+              <button className="cta-button" type="submit" disabled={isSelling || !sellPrice || !sellDate}>{isSelling ? 'Registrando...' : 'Registrar venda'}</button>
+            </form>
+          </section>
+        )}
+
         {activeTab === 'overview' && <section className="metric-grid" aria-label="Resumo financeiro">
           <article className="metric-card metric-card-highlight">
             <span className="user-label">Saldo acumulado</span>
@@ -279,17 +357,27 @@ function UserPage({ onNavigate }) {
             {availableItems.length === 0 ? (
               <p className="empty-state">Nenhum item disponível para venda.</p>
             ) : (
-              <div className="item-list">
+              <ul className="item-list">
                 {availableItems.slice(0, 5).map((item) => (
-                  <article className="item-row" key={item.id}>
+                  <li className="item-row available" key={item.id}>
                     <div>
                       <strong>{item.name}</strong>
                       <span>{item.category?.name || 'Sem categoria'}</span>
                     </div>
-                    <strong>{formatCurrency(item.buyPrice)}</strong>
-                  </article>
+                    <div className="item-actions">
+                      <strong>{formatCurrency(item.buyPrice)}</strong>
+                      <span className="stock-tag">Em estoque</span>
+                      <button
+                        className="secondary-button"
+                        onClick={() => openSellModal(item)}
+                        aria-label={`Vender ${item.name}`}
+                      >
+                        Vender
+                      </button>
+                    </div>
+                  </li>
                 ))}
-              </div>
+              </ul>
             )}
           </section>
 
@@ -306,14 +394,13 @@ function UserPage({ onNavigate }) {
             ) : (
               <div className="item-list">
                 {soldItems.slice(-5).reverse().map((item) => (
-                  <article className="item-row" key={item.id}>
+                  <article className="item-row sold" key={item.id}>
                     <div>
                       <strong>{item.name}</strong>
+                      <span>Compra: {formatCurrency(item.buyPrice)} · Venda: {formatCurrency(item.sellPrice)}</span>
                       <span>{formatDate(item.sellDate)}</span>
                     </div>
-                    <strong className={Number(item.profit) >= 0 ? 'metric-profit' : 'metric-loss'}>
-                      {formatCurrency(item.profit)}
-                    </strong>
+                    <ResultBadge profit={item.profit} margin={item.margin} />
                   </article>
                 ))}
               </div>
