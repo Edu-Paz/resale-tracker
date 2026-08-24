@@ -24,6 +24,9 @@ public class CategoryService {
 
     @Transactional
     public CategoryDTO createCategory(CategoryInsertDTO categoryInsertDTO) {
+        if(categoryRepository.existsByNameAndUserId(categoryInsertDTO.getName(), authService.getAuthenticatedUser().getId())) {
+            throw new BusinessException("Category already exists for the current user.");
+        }
         User user = authService.getAuthenticatedUser();
         Category category = new Category();
         category.setName(categoryInsertDTO.getName());
