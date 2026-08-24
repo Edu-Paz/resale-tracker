@@ -150,6 +150,338 @@
   padding: 64px 24px;
 }
 
+.dashboard-main {
+  background: linear-gradient(135deg, rgba(251, 248, 240, 0.7), rgba(237, 230, 214, 0.85));
+}
+
+.dashboard-shell {
+  width: min(100%, 1120px);
+}
+
+.dashboard-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.dashboard-header h1 {
+  margin: 8px 0;
+  font-family: var(--font-serif);
+  font-size: 2.5rem;
+  line-height: 1.1;
+}
+
+.dashboard-intro {
+  margin: 0;
+  color: var(--ink-muted);
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.metric-card {
+  display: grid;
+  gap: 10px;
+  min-height: 150px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--card);
+  padding: 20px;
+}
+
+.metric-card-highlight {
+  border-color: var(--ochre);
+  background: var(--ink);
+  color: var(--card);
+}
+
+.metric-card-highlight .user-label,
+.metric-card-highlight .metric-detail {
+  color: #D8CBB0;
+}
+
+.metric-card strong {
+  font-family: var(--font-mono);
+  font-size: 1.45rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-profit {
+  color: var(--profit);
+}
+
+.metric-loss {
+  color: var(--loss);
+}
+
+.metric-card-highlight strong {
+  color: var(--card);
+}
+
+.metric-detail {
+  color: var(--ink-muted);
+  font-size: 0.8125rem;
+}
+
+.dashboard-columns {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 24px;
+}
+
+.dashboard-panel {
+  min-width: 0;
+  border-top: 3px solid var(--ochre);
+  background: var(--card);
+  padding: 24px;
+}
+
+.panel-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.panel-heading h2 {
+  margin: 6px 0 0;
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+}
+
+.panel-count {
+  display: grid;
+  min-width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--loss-bg);
+  color: var(--loss);
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+}
+
+.item-list {
+  display: grid;
+}
+
+.item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-top: 1px solid var(--line);
+  padding: 14px 0;
+}
+
+.item-row:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.item-row div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.item-row strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-row span {
+  color: var(--ink-muted);
+  font-size: 0.8125rem;
+}
+
+.item-row > strong {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+}
+
+.item-actions {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
+
+.item-actions-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.item-actions-buttons .secondary-button {
+  padding: 7px 12px;
+  font-size: 0.8125rem;
+}
+
+.empty-state {
+  margin: 0;
+  border: 1px dashed var(--line);
+  color: var(--ink-muted);
+  padding: 28px 16px;
+  text-align: center;
+}
+
+.dashboard-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-muted);
+  padding: 18px 0;
+  font-size: 0.875rem;
+}
+
+.dashboard-footer strong {
+  color: var(--ink);
+  font-family: var(--font-mono);
+}
+
+.dashboard-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+.dashboard-tab {
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: var(--ink-muted);
+  cursor: pointer;
+  padding: 12px 16px;
+}
+
+.dashboard-tab:hover,
+.dashboard-tab.active {
+  border-bottom-color: var(--ochre);
+  color: var(--ink);
+}
+
+.form-panel {
+  min-height: 360px;
+}
+
+.dashboard-form {
+  display: grid;
+  gap: 20px;
+  max-width: 720px;
+}
+
+.dashboard-form label,
+.quick-category label {
+  display: grid;
+  gap: 8px;
+  color: var(--ink);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.dashboard-form input,
+.dashboard-form select,
+.quick-category input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--ink);
+  padding: 12px;
+}
+
+.dashboard-form input:focus,
+.dashboard-form select:focus,
+.quick-category input:focus {
+  border-color: var(--ochre);
+  outline: 2px solid var(--ochre);
+  outline-offset: 2px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.category-select-row,
+.quick-category {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+}
+
+.category-select-row select {
+  flex: 1;
+}
+
+.inline-action {
+  flex-shrink: 0;
+  border: 0;
+  background: transparent;
+  color: var(--focus);
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 12px 0;
+}
+
+.inline-action:hover {
+  color: var(--ochre);
+}
+
+.quick-category {
+  align-items: end;
+  border-left: 3px solid var(--ochre);
+  background: var(--kraft);
+  padding: 16px;
+}
+
+.quick-category label {
+  flex: 1;
+}
+
+.quick-category .secondary-button {
+  padding: 11px 16px;
+}
+
+.optional-label,
+.form-hint {
+  color: var(--ink-muted);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+.category-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 32px;
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+}
+
+.category-list span {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  color: var(--ink-muted);
+  padding: 6px 10px;
+  font-size: 0.8125rem;
+}
+
 .user-card {
   width: min(100%, 640px);
   border: 1px solid var(--line);
@@ -215,6 +547,46 @@
 
   .user-main {
     padding: 40px 16px;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+  }
+
+  .metric-grid,
+  .dashboard-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-tabs {
+    overflow-x: auto;
+  }
+
+  .dashboard-tab {
+    flex-shrink: 0;
+    padding-inline: 10px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .item-row {
+    align-items: flex-start;
+  }
+
+  .item-actions {
+    justify-items: stretch;
+  }
+
+  .item-actions-buttons {
+    justify-content: flex-start;
+  }
+
+  .category-select-row,
+  .quick-category {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .user-card {
