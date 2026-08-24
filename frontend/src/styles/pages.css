@@ -309,6 +309,24 @@
   font-size: 0.875rem;
 }
 
+.item-actions {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
+
+.item-actions-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.item-actions-buttons .secondary-button {
+  padding: 7px 12px;
+  font-size: 0.8125rem;
+}
+
 .empty-state {
   margin: 0;
   border: 1px dashed var(--line);
@@ -551,6 +569,18 @@
 
   .form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .item-row {
+    align-items: flex-start;
+  }
+
+  .item-actions {
+    justify-items: stretch;
+  }
+
+  .item-actions-buttons {
+    justify-content: flex-start;
   }
 
   .category-select-row,

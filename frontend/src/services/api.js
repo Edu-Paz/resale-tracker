@@ -77,6 +77,16 @@ export function createItem(token, item) {
   })
 }
 
+export function updateItem(token, itemId, item) {
+  return request(`/items/${itemId}`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(item),
+  })
+}
+
 export function createCategory(token, category) {
   return request('/categories', {
     method: 'POST',
