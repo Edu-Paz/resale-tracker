@@ -50,8 +50,9 @@ export function getCurrentUser(token) {
   })
 }
 
-export function getItems(token) {
-  return request('/items', {
+export function getItems(token, categoryId) {
+  const query = categoryId ? `?categoryId=${categoryId}` : ''
+  return request(`/items${query}`, {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${token}`,
