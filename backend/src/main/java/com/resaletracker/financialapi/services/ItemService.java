@@ -76,6 +76,10 @@ public class ItemService {
             throw new BusinessException("Item with id " + itemId + " has already been sold.");
         }
 
+        if (sellDTO.getSellDate() != null && sellDTO.getSellDate().isBefore(item.getBuyDate())) {
+            throw new BusinessException("Sell date cannot be before buy date");
+        }
+
         item.setSellPrice(sellDTO.getSellPrice());
         item.setSellDate(sellDTO.getSellDate());
         item.setStatus(ItemStatus.SOLD);
@@ -155,8 +159,22 @@ public class ItemService {
             item.setSellPrice(itemUpdateDTO.getSellPrice());
         }
 
+        if (itemUpdateDTO.getStatus() != null) {
+            item.setStatus(itemUpdateDTO.getStatus());
+            if (item.getStatus() == ItemStatus.AVAILABLE) {
+                item.setSellPrice(null);
+                item.setSellDate(null);
+                item.setProfit(null);
+                item.setMargin(null);
+            }
+        }
+
         if (item.getStatus() == ItemStatus.SOLD && (itemUpdateDTO.getBuyPrice() != null || itemUpdateDTO.getSellPrice() != null)) {
             recalculateFinancialMetrics(item);
+        }
+
+        if (itemUpdateDTO.getSellDate() != null && itemUpdateDTO.getSellDate().isBefore(item.getBuyDate())) {
+            throw new BusinessException("Sell date cannot be before buy date");
         }
 
         return new ItemDTO(item);

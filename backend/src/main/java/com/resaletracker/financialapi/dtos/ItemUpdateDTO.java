@@ -1,5 +1,6 @@
 package com.resaletracker.financialapi.dtos;
 
+import com.resaletracker.financialapi.entities.ItemStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
@@ -22,4 +23,5 @@ public class ItemUpdateDTO {
     private LocalDate sellDate;
     private BigDecimal sellPrice;
     private Long categoryId;
+    private ItemStatus status;
 }
