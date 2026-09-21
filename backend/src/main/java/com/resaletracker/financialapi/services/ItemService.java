@@ -112,10 +112,6 @@ public class ItemService {
             throw new ResourceNotFoundException("Item not found with id: " + itemId + " for this user");
         }
 
-        if (item.getStatus() == ItemStatus.SOLD) {
-            throw new BusinessException("Cannot delete an item that has already been sold.");
-        }
-
         itemRepository.deleteById(itemId);
     }
 
