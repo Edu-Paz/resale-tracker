@@ -76,19 +76,15 @@ public class ItemService {
             throw new BusinessException("Item with id " + itemId + " has already been sold.");
         }
 
+        if (sellDTO.getSellDate() != null && sellDTO.getSellDate().isBefore(item.getBuyDate())) {
+            throw new BusinessException("Sell date cannot be before buy date");
+        }
+
         item.setSellPrice(sellDTO.getSellPrice());
         item.setSellDate(sellDTO.getSellDate());
         item.setStatus(ItemStatus.SOLD);
 
-        BigDecimal profit = item.getSellPrice().subtract(item.getBuyPrice());
-        item.setProfit(profit);
-
-        if (item.getSellPrice().compareTo(BigDecimal.ZERO) > 0) {
-            BigDecimal margin = profit.divide(item.getSellPrice(), 4, RoundingMode.HALF_UP).multiply(new BigDecimal("100"));
-            item.setMargin(margin);
-        } else {
-            item.setMargin(BigDecimal.ZERO);
-        }
+        recalculateFinancialMetrics(item);
 
         return new ItemDTO(item);
     }
@@ -116,10 +112,6 @@ public class ItemService {
             throw new ResourceNotFoundException("Item not found with id: " + itemId + " for this user");
         }
 
-        if (item.getStatus() == ItemStatus.SOLD) {
-            throw new BusinessException("Cannot delete an item that has already been sold.");
-        }
-
         itemRepository.deleteById(itemId);
     }
 
@@ -133,28 +125,68 @@ public class ItemService {
             throw new ResourceNotFoundException("Item not found with id: " + itemId + " for this user");
         }
 
-        if (item.getStatus() != ItemStatus.AVAILABLE) {
-            throw new BusinessException("Only items with AVAILABLE status can be edited.");
-        }
-
         if (itemUpdateDTO.getName() != null) {
             item.setName(itemUpdateDTO.getName());
         }
+
         if (itemUpdateDTO.getImgUrl() != null) {
             item.setImgUrl(itemUpdateDTO.getImgUrl());
         }
+
         if (itemUpdateDTO.getBuyPrice() != null) {
             item.setBuyPrice(itemUpdateDTO.getBuyPrice());
         }
+
         if (itemUpdateDTO.getBuyDate() != null) {
             item.setBuyDate(itemUpdateDTO.getBuyDate());
         }
+
         if (itemUpdateDTO.getCategoryId() != null) {
             Category category = categoryRepository.findByIdAndUserId(itemUpdateDTO.getCategoryId(), user.getId())
                     .orElseThrow(() -> new ResourceNotFoundException("Category with id " + itemUpdateDTO.getCategoryId() + " not found for user " + user.getId()));
             item.setCategory(category);
         }
 
+        if (itemUpdateDTO.getSellDate() != null) {
+            item.setSellDate(itemUpdateDTO.getSellDate());
+        }
+
+        if (itemUpdateDTO.getSellPrice() != null) {
+            item.setSellPrice(itemUpdateDTO.getSellPrice());
+        }
+
+        if (itemUpdateDTO.getStatus() != null) {
+            item.setStatus(itemUpdateDTO.getStatus());
+            if (item.getStatus() == ItemStatus.AVAILABLE) {
+                item.setSellPrice(null);
+                item.setSellDate(null);
+                item.setProfit(null);
+                item.setMargin(null);
+            }
+        }
+
+        if (item.getStatus() == ItemStatus.SOLD && (itemUpdateDTO.getBuyPrice() != null || itemUpdateDTO.getSellPrice() != null)) {
+            recalculateFinancialMetrics(item);
+        }
+
+        if (itemUpdateDTO.getSellDate() != null && itemUpdateDTO.getSellDate().isBefore(item.getBuyDate())) {
+            throw new BusinessException("Sell date cannot be before buy date");
+        }
+
         return new ItemDTO(item);
+    }
+
+    private void recalculateFinancialMetrics(Item item) {
+        if (item.getStatus() == ItemStatus.SOLD && item.getSellPrice() != null) {
+            BigDecimal profit = item.getSellPrice().subtract(item.getBuyPrice());
+            item.setProfit(profit);
+
+            if (item.getSellPrice().compareTo(BigDecimal.ZERO) > 0) {
+                BigDecimal margin = profit.divide(item.getSellPrice(), 4, RoundingMode.HALF_UP).multiply(new BigDecimal("100"));
+                item.setMargin(margin);
+            } else {
+                item.setMargin(BigDecimal.ZERO);
+            }
+        }
     }
 }

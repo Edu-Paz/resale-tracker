@@ -5,6 +5,8 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "tb_item")
@@ -13,7 +15,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-@EqualsAndHashCode
+@EqualsAndHashCode(exclude = {"category", "expense"})
 public class Item {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,5 +31,21 @@ public class Item {
     private BigDecimal margin;
 
     @ManyToOne(optional = false)
+    @ToString.Exclude
     private Category category;
+
+    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    @Setter(AccessLevel.NONE)
+    private List<Expense> expense = new ArrayList<>();
+
+    public void addExpense(Expense expense) {
+        this.expense.add(expense);
+        expense.setItem(this);
+    }
+
+    public void removeExpense(Expense expense) {
+        this.expense.remove(expense);
+        expense.setItem(null);
+    }
 }

@@ -7,22 +7,15 @@ function getFormErrorMessage(error) {
   return 'Não foi possível concluir a operação. Tente novamente.'
 }
 
-function formatDateInput(value) {
-  const digits = value.replace(/\D/g, '').slice(0, 8)
-  if (digits.length <= 2) return digits
-  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`
-  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`
-}
-
-function parseBrazilianDate(value) {
-  const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value)
+function parseDateInput(value) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
   if (!match) return null
 
-  const [, day, month, year] = match
+  const [, year, month, day] = match
   const date = new Date(Number(year), Number(month) - 1, Number(day))
   if (date.getFullYear() !== Number(year) || date.getMonth() !== Number(month) - 1 || date.getDate() !== Number(day)) return null
 
-  return `${year}-${month}-${day}`
+  return value
 }
 
 function ItemForm({ categories, onItemCreated, onCategoryCreated }) {
@@ -63,7 +56,7 @@ function ItemForm({ categories, onItemCreated, onCategoryCreated }) {
 
     const form = event.currentTarget
     const formData = new FormData(form)
-    const parsedBuyDate = parseBrazilianDate(buyDate)
+    const parsedBuyDate = parseDateInput(buyDate)
     const today = new Date().toISOString().slice(0, 10)
     if (!parsedBuyDate || parsedBuyDate > today) {
       setFormMessage({ type: 'error', text: parsedBuyDate ? 'A data não pode ser futura.' : 'Digite uma data válida no formato DD/MM/AAAA.' })
@@ -108,7 +101,7 @@ function ItemForm({ categories, onItemCreated, onCategoryCreated }) {
         <label>Nome do item<input name="name" placeholder="Ex.: Jaqueta jeans" required /></label>
         <div className="form-grid">
           <label>Preço de compra<input name="buyPrice" type="number" min="0.01" step="0.01" placeholder="0,00" required /></label>
-          <label>Data da compra<input name="buyDate" type="text" inputMode="numeric" placeholder="DD/MM/AAAA" value={buyDate} onChange={(event) => { setBuyDate(formatDateInput(event.target.value)); setFormMessage(null) }} maxLength="10" required /></label>
+          <label>Data da compra<input name="buyDate" type="date" lang="pt-BR" max={new Date().toISOString().slice(0, 10)} value={buyDate} onChange={(event) => { setBuyDate(event.target.value); setFormMessage(null) }} required /></label>
         </div>
         <label>Imagem <span className="optional-label">(opcional)</span><input name="imgUrl" type="url" placeholder="https://..." /></label>
         <label>Categoria
@@ -121,7 +114,7 @@ function ItemForm({ categories, onItemCreated, onCategoryCreated }) {
           </div>
         </label>
         {quickCategoryOpen && <div className="quick-category"><label>Nome da nova categoria<input value={quickCategoryName} onChange={(event) => setQuickCategoryName(event.target.value)} placeholder="Ex.: Calçados" required /></label><button className="secondary-button" type="button" onClick={handleQuickCategorySubmit} disabled={isSubmitting || !quickCategoryName.trim()}>Criar categoria</button></div>}
-        {formMessage && <p className={`form-message form-${formMessage.type}`} role={formMessage.type === 'error' ? 'alert' : 'status'}>{formMessage.text}</p>}
+        {formMessage && <output className={`form-message form-${formMessage.type}`} role={formMessage.type === 'error' ? 'alert' : undefined}>{formMessage.text}</output>}
         <button className="cta-button" type="submit" disabled={isSubmitting || categories.length === 0}>{isSubmitting ? 'Salvando...' : 'Adicionar ao estoque'}</button>
         {categories.length === 0 && <p className="form-hint">Crie uma categoria antes de adicionar um item.</p>}
       </form>
