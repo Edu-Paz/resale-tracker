@@ -1,6 +1,7 @@
 package com.resaletracker.financialapi.controllers;
 
 import com.resaletracker.financialapi.dtos.ExpenseDTO;
+import com.resaletracker.financialapi.dtos.ExpenseUpdateDTO;
 import com.resaletracker.financialapi.services.ExpenseService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +36,17 @@ public class ExpenseController {
         ExpenseDTO expenseDTO = expenseService.getExpenseById(expenseId);
 
         return ResponseEntity.ok(expenseDTO);
+    }
+
+    @PatchMapping("/{expenseId}")
+    public ResponseEntity<ExpenseDTO> updateExpense(
+            @PathVariable Long expenseId,
+            @RequestBody @Valid ExpenseUpdateDTO expenseUpdateDTO
+    ) {
+        ExpenseDTO updatedExpense =
+                expenseService.updateExpenseById(expenseId, expenseUpdateDTO);
+
+        return ResponseEntity.ok(updatedExpense);
     }
 
     @DeleteMapping("/{expenseId}")

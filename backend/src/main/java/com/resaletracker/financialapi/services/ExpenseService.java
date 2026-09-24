@@ -1,6 +1,7 @@
 package com.resaletracker.financialapi.services;
 
 import com.resaletracker.financialapi.dtos.ExpenseDTO;
+import com.resaletracker.financialapi.dtos.ExpenseUpdateDTO;
 import com.resaletracker.financialapi.entities.Expense;
 import com.resaletracker.financialapi.entities.Item;
 import com.resaletracker.financialapi.entities.User;
@@ -14,6 +15,8 @@ import java.util.List;
 
 @Service
 public class ExpenseService {
+
+    private static final String EXPENSE_NOT_FOUND_MESSAGE = "Expense not found with id: ";
 
     private final ExpenseRepository expenseRepository;
     private final ItemRepository itemRepository;
@@ -53,9 +56,26 @@ public class ExpenseService {
         User user = authService.getAuthenticatedUser();
         Expense expense = expenseRepository.findById(expenseId)
                 .filter(foundExpense -> foundExpense.getItem().getCategory().getUser().getId().equals(user.getId()))
-                .orElseThrow(() -> new ResourceNotFoundException("Expense not found with id: " + expenseId));
+                .orElseThrow(() -> new ResourceNotFoundException(EXPENSE_NOT_FOUND_MESSAGE + expenseId));
 
         return new ExpenseDTO(expense);
+    }
+
+    @Transactional
+    public ExpenseDTO updateExpenseById(Long expenseId, ExpenseUpdateDTO expenseUpdateDTO) {
+        User user = authService.getAuthenticatedUser();
+        Expense expense = expenseRepository.findById(expenseId)
+                .filter(foundExpense ->
+                        foundExpense.getItem().getCategory().getUser().getId().equals(user.getId())
+                )
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        EXPENSE_NOT_FOUND_MESSAGE + expenseId
+                ));
+
+        expense.setName(expenseUpdateDTO.getName());
+        expense.setAmount(expenseUpdateDTO.getAmount());
+
+        return new ExpenseDTO(expenseRepository.save(expense));
     }
 
     @Transactional(readOnly = true)
@@ -81,7 +101,7 @@ public class ExpenseService {
                         foundExpense.getItem().getCategory().getUser().getId().equals(user.getId())
                 )
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Expense not found with id: " + expenseId
+                        EXPENSE_NOT_FOUND_MESSAGE + expenseId
                 ));
 
         expenseRepository.delete(expense);
