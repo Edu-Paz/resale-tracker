@@ -72,4 +72,18 @@ public class ExpenseService {
                 .map(ExpenseDTO::new)
                 .toList();
     }
+
+    @Transactional
+    public void deleteById(Long expenseId) {
+        User user = authService.getAuthenticatedUser();
+        Expense expense = expenseRepository.findById(expenseId)
+                .filter(foundExpense ->
+                        foundExpense.getItem().getCategory().getUser().getId().equals(user.getId())
+                )
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Expense not found with id: " + expenseId
+                ));
+
+        expenseRepository.delete(expense);
+    }
 }

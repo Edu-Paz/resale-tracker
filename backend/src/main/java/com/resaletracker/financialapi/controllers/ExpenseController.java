@@ -37,6 +37,13 @@ public class ExpenseController {
         return ResponseEntity.ok(expenseDTO);
     }
 
+    @DeleteMapping("/{expenseId}")
+    public ResponseEntity<Void> deleteExpense(@PathVariable Long expenseId) {
+        expenseService.deleteById(expenseId);
+
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/item/{itemId}")
     public ResponseEntity<List<ExpenseDTO>> getAllExpensesByItem(@PathVariable Long itemId) {
         List<ExpenseDTO> expenseDTOList = expenseService.getAllExpensesByItem(itemId);
