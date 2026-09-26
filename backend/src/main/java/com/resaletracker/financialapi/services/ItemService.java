@@ -163,9 +163,15 @@ public class ItemService {
         return new ItemDTO(item);
     }
 
-    private void recalculateFinancialMetrics(Item item) {
+    public void recalculateFinancialMetrics(Item item) {
         if (item.getStatus() == ItemStatus.SOLD && item.getSellPrice() != null) {
-            BigDecimal profit = item.getSellPrice().subtract(item.getBuyPrice());
+            BigDecimal additionalExpenses = item.getExpense().stream()
+                    .map(expense -> expense.getAmount() == null
+                            ? BigDecimal.ZERO
+                            : expense.getAmount())
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal totalCost = item.getBuyPrice().add(additionalExpenses);
+            BigDecimal profit = item.getSellPrice().subtract(totalCost);
             item.setProfit(profit);
 
             if (item.getSellPrice().compareTo(BigDecimal.ZERO) > 0) {
