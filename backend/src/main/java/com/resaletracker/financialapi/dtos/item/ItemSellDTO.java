@@ -1,4 +1,4 @@
-package com.resaletracker.financialapi.dtos;
+package com.resaletracker.financialapi.dtos.item;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;

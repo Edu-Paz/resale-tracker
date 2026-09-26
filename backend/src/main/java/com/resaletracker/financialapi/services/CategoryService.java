@@ -1,7 +1,7 @@
 package com.resaletracker.financialapi.services;
 
-import com.resaletracker.financialapi.dtos.CategoryDTO;
-import com.resaletracker.financialapi.dtos.CategoryInsertDTO;
+import com.resaletracker.financialapi.dtos.category.CategoryDTO;
+import com.resaletracker.financialapi.dtos.category.CategoryInsertDTO;
 import com.resaletracker.financialapi.entities.Category;
 import com.resaletracker.financialapi.entities.User;
 import com.resaletracker.financialapi.repositories.CategoryRepository;

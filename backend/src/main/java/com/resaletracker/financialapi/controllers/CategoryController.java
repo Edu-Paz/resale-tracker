@@ -1,7 +1,7 @@
 package com.resaletracker.financialapi.controllers;
 
-import com.resaletracker.financialapi.dtos.CategoryDTO;
-import com.resaletracker.financialapi.dtos.CategoryInsertDTO;
+import com.resaletracker.financialapi.dtos.category.CategoryDTO;
+import com.resaletracker.financialapi.dtos.category.CategoryInsertDTO;
 import com.resaletracker.financialapi.services.CategoryService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;

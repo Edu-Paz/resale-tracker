@@ -1,9 +1,9 @@
 package com.resaletracker.financialapi.controllers;
 
-import com.resaletracker.financialapi.dtos.ItemDTO;
-import com.resaletracker.financialapi.dtos.ItemInsertDTO;
-import com.resaletracker.financialapi.dtos.ItemSellDTO;
-import com.resaletracker.financialapi.dtos.ItemUpdateDTO;
+import com.resaletracker.financialapi.dtos.item.ItemDTO;
+import com.resaletracker.financialapi.dtos.item.ItemInsertDTO;
+import com.resaletracker.financialapi.dtos.item.ItemSellDTO;
+import com.resaletracker.financialapi.dtos.item.ItemUpdateDTO;
 import com.resaletracker.financialapi.services.ItemService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;

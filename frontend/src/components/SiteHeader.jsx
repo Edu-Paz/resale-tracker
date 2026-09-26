@@ -1,4 +1,5 @@
 import AppLink from './AppLink'
+import { routes } from '../routes/appRoutes'
 
 function SiteHeader({ onNavigate, homePath }) {
   return (
@@ -7,6 +8,11 @@ function SiteHeader({ onNavigate, homePath }) {
         <AppLink className="logo logo-button" href={homePath} onNavigate={onNavigate}>
           Resale Tracker
         </AppLink>
+        <nav className="header-nav" aria-label="Navegação principal">
+          <AppLink className="header-link" href={routes.items} onNavigate={onNavigate}>
+            Gerenciar itens
+          </AppLink>
+        </nav>
       </div>
     </header>
   )

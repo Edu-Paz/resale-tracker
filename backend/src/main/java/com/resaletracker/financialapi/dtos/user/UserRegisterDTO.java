@@ -1,4 +1,4 @@
-package com.resaletracker.financialapi.dtos;
+package com.resaletracker.financialapi.dtos.user;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

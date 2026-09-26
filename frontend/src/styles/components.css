@@ -7,6 +7,23 @@
 .header .container {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+}
+
+.header-nav {
+  display: flex;
+  gap: 16px;
+}
+
+.header-link {
+  color: var(--ink-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.header-link:hover {
+  color: var(--ink);
 }
 
 .logo {
@@ -108,12 +125,16 @@
   position: fixed;
   inset: 0;
   background: rgba(31, 42, 36, 0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
   z-index: 999;
-  backdrop-filter: blur(2px);
+  margin: 0;
+  border: 0;
+  pointer-events: auto;
 }
 
 .modal-dialog {

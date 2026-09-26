@@ -9,6 +9,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "tb_expense")
 @Getter
@@ -20,7 +22,7 @@ public class Expense {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
-    private String value;
+    private BigDecimal amount;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "item_id", nullable = false)

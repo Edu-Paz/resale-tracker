@@ -1,4 +1,4 @@
-package com.resaletracker.financialapi.dtos;
+package com.resaletracker.financialapi.dtos.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,7 +9,6 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoginRequestDTO {
-    private String username;
-    private String password;
+public class LoginResponseDTO {
+    private String token;
 }

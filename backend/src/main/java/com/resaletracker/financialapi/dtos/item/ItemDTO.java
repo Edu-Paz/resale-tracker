@@ -1,8 +1,9 @@
-package com.resaletracker.financialapi.dtos;
+package com.resaletracker.financialapi.dtos.item;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.resaletracker.financialapi.entities.Item;
 import com.resaletracker.financialapi.entities.ItemStatus;
+import com.resaletracker.financialapi.dtos.category.CategoryDTO;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

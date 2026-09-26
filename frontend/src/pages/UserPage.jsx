@@ -1,11 +1,13 @@
-import {useEffect, useState} from 'react'
-import {ApiError, deleteItem, getCategories, getCurrentUser, getItems, sellItem, updateItem} from '../services/api'
+import {useCallback, useEffect, useState} from 'react'
+import {ApiError, deleteItem, getCategories, getCurrentUser, getExpensesByItem, getItems, sellItem, updateItem} from '../services/api'
 import {clearToken, getToken} from '../services/session'
 import {routes} from '../routes/appRoutes'
 import CategoryForm from '../components/CategoryForm'
 import ItemForm from '../components/ItemForm'
 import ItemList from '../components/ItemList'
 import ResultBadge from '../components/ResultBadge'
+import ExpenseManager from '../components/ExpenseManager'
+import { getItemNetMargin, getItemNetProfit } from '../utils/itemFinancials'
 
 function getFormErrorMessage(error) {
     if (error instanceof ApiError) {
@@ -107,7 +109,8 @@ function SellItemPanel({
     const today = new Date().toISOString().slice(0, 10)
 
     return (
-        <section className="dashboard-panel form-panel" aria-labelledby="sell-item-title">
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="sell-item-title" onClick={onClose}>
+            <section className="dashboard-panel form-panel modal-form-panel" onClick={(event) => event.stopPropagation()}>
             <div className="panel-heading">
                 <div>
                     <p className="eyebrow">Registrar venda</p>
@@ -164,7 +167,8 @@ function SellItemPanel({
                     {isSelling ? 'Registrando...' : 'Registrar venda'}
                 </button>
             </form>
-        </section>
+            </section>
+        </div>
     )
 }
 
@@ -189,7 +193,8 @@ function EditItemPanel({
     const today = new Date().toISOString().slice(0, 10)
 
     return (
-        <section className="dashboard-panel form-panel" aria-labelledby="edit-item-title">
+        <dialog open className="modal-backdrop" aria-labelledby="edit-item-title" onClick={onClose}>
+            <section className="dashboard-panel form-panel modal-form-panel" aria-labelledby="edit-item-title" onClick={(event) => event.stopPropagation()}>
             <div className="panel-heading">
                 <div>
                     <p className="eyebrow">Atualizar estoque</p>
@@ -311,7 +316,8 @@ function EditItemPanel({
                     {isEditing ? 'Salvando...' : 'Salvar alterações'}
                 </button>
             </form>
-        </section>
+            </section>
+        </dialog>
     )
 }
 
@@ -319,8 +325,8 @@ function DeleteItemDialog({ item, error, isDeleting, onCancel, onConfirm }) {
     if (!item) return null
 
     return (
-        <dialog open className="modal-backdrop" aria-labelledby="delete-dialog-title">
-            <div className="modal-dialog">
+        <dialog open className="modal-backdrop" aria-labelledby="delete-dialog-title" onClick={onCancel}>
+            <div className="modal-dialog" onClick={(event) => event.stopPropagation()}>
                 <p className="eyebrow">Confirmação</p>
                 <h3 id="delete-dialog-title">Excluir «{item.name}»?</h3>
                 <p>
@@ -360,10 +366,10 @@ function OverviewTab({
     onEditItem,
     onSellItem,
 }) {
-    const totalProfit = soldItems.reduce((total, item) => total + Number(item.profit || 0), 0)
+    const totalProfit = soldItems.reduce((total, item) => total + Number(getItemNetProfit(item) || 0), 0)
     const totalInvested = items.reduce((total, item) => total + Number(item.buyPrice || 0), 0)
     const totalLoss = soldItems.reduce((total, item) => {
-        const profit = Number(item.profit || 0)
+        const profit = Number(getItemNetProfit(item) || 0)
         return total + (profit < 0 ? Math.abs(profit) : 0)
     }, 0)
 
@@ -464,7 +470,7 @@ function OverviewTab({
                                         <span>{formatDate(item.sellDate)}</span>
                                     </div>
                                     <div className="item-actions-buttons">
-                                        <ResultBadge profit={item.profit} margin={item.margin} />
+                                        <ResultBadge profit={getItemNetProfit(item)} margin={getItemNetMargin(item)} />
                                         <button
                                             className="secondary-button"
                                             type="button"
@@ -489,12 +495,12 @@ function OverviewTab({
     )
 }
 
-function UserPage({onNavigate}) {
+function UserPage({onNavigate, initialTab = 'overview'}) {
     const [user, setUser] = useState(null)
     const [items, setItems] = useState([])
     const [categories, setCategories] = useState([])
     const [errorMessage, setErrorMessage] = useState('')
-    const [activeTab, setActiveTab] = useState('overview')
+    const [activeTab, setActiveTab] = useState(initialTab)
     const [sellingItem, setSellingItem] = useState(null)
     const [sellPrice, setSellPrice] = useState('')
     const [sellDate, setSellDate] = useState('')
@@ -511,6 +517,7 @@ function UserPage({onNavigate}) {
     const [deletingItem, setDeletingItem] = useState(null)
     const [isDeleting, setIsDeleting] = useState(false)
     const [deleteError, setDeleteError] = useState(null)
+    const [expensesItem, setExpensesItem] = useState(null)
 
     useEffect(() => {
         const token = getToken()
@@ -520,9 +527,21 @@ function UserPage({onNavigate}) {
         }
 
         Promise.all([getCurrentUser(token), getItems(token), getCategories(token)])
-            .then(([currentUser, userItems, userCategories]) => {
-                setUser(currentUser)
-                setItems(userItems)
+        .then(async ([currentUser, userItems, userCategories]) => {
+            const expenseData = await Promise.all(userItems.map(async (item) => {
+                const expenses = await getExpensesByItem(token, item.id)
+                return [item.id, expenses]
+            }))
+            const expensesByItem = new Map(expenseData)
+            setUser(currentUser)
+            setItems(userItems.map((item) => {
+                const itemExpenses = expensesByItem.get(item.id) || []
+                return {
+                    ...item,
+                    expenses: itemExpenses,
+                    expensesTotal: itemExpenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0),
+                }
+            }))
                 setCategories(userCategories)
             })
             .catch((error) => {
@@ -570,6 +589,17 @@ function UserPage({onNavigate}) {
         setSellPrice('')
         setSellDate('')
     }
+
+    function openExpenses(item) {
+        setExpensesItem(item)
+    }
+
+    const handleExpensesChanged = useCallback((expensesTotal, expenses) => {
+        if (!expensesItem) return
+        setItems((currentItems) => currentItems.map((item) => (
+            item.id === expensesItem.id ? { ...item, expenses, expensesTotal } : item
+        )))
+    }, [expensesItem])
 
     function closeSellModal() {
         setSellingItem(null)
@@ -787,6 +817,7 @@ function UserPage({onNavigate}) {
                         onEdit={openEditItem}
                         onSell={openSellModal}
                         onDelete={handleDeleteItem}
+                        onManageExpenses={openExpenses}
                         onAddNew={() => setActiveTab('item')}
                     />
                 )}
@@ -804,7 +835,7 @@ function UserPage({onNavigate}) {
                 )}
 
                 {activeTab === 'item' && <ItemForm categories={categories}
-                                                   onItemCreated={(item) => setItems((currentItems) => [...currentItems, item])}
+                                                   onItemCreated={(item) => setItems((currentItems) => [...currentItems, { ...item, expenses: [], expensesTotal: 0 }])}
                                                    onCategoryCreated={(category) => setCategories((currentCategories) => [...currentCategories, category])}/>}
 
                 {activeTab === 'category' && <CategoryForm categories={categories}
@@ -820,6 +851,13 @@ function UserPage({onNavigate}) {
                     }}
                     onConfirm={confirmDeleteItem}
                 />
+                {expensesItem && (
+                    <ExpenseManager
+                        item={expensesItem}
+                        onExpensesChanged={handleExpensesChanged}
+                        onClose={() => setExpensesItem(null)}
+                    />
+                )}
             </div>
         </main>
     )
