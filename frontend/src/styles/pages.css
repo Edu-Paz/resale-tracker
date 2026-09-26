@@ -582,11 +582,70 @@
   margin-top: auto;
 }
 
+.item-card-expenses {
+  border-top: 1px solid var(--line);
+  background: var(--kraft);
+  padding: 12px;
+}
+
+.item-card-expenses-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--ink-muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.item-card-expenses-heading strong {
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.item-card-expenses ul {
+  display: grid;
+  gap: 5px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item-card-expenses li {
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 0.8125rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .item-footer-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
+}
+
+.item-footer-actions .secondary-button,
+.item-footer-actions .destructive-button {
+  padding: 7px 12px;
+  font-size: 0.8125rem;
+}
+
+.item-expenses-button {
+  border-color: var(--focus);
+  background: rgba(201, 138, 44, 0.08);
+  color: var(--focus);
+  font-weight: 600;
+}
+
+.item-expenses-button:hover {
+  border-color: var(--ochre);
+  background: var(--ochre);
+  color: var(--card);
 }
 
 .item-sell-btn {
@@ -819,6 +878,20 @@
   color: var(--ink-muted);
 }
 
+.expense-dialog {
+  width: min(100%, 720px);
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+}
+
+.expense-total { margin: 0 0 20px; color: var(--ink-muted); }
+.expense-total strong { color: var(--ink); font-family: var(--font-mono); }
+.expense-form { max-width: none; border-bottom: 1px solid var(--line); padding-bottom: 24px; }
+.expense-list { display: grid; gap: 0; margin: 24px 0 0; padding: 0; list-style: none; }
+.expense-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-top: 1px solid var(--line); padding: 14px 0; }
+.expense-row > div:first-child { display: grid; gap: 4px; }
+.expense-row span { color: var(--ink-muted); font-family: var(--font-mono); font-size: 0.875rem; }
+
 @media (max-width: 560px) {
   .hero,
   .auth-main {
@@ -891,6 +964,11 @@
 
   .user-card-header {
     align-items: stretch;
+    flex-direction: column;
+  }
+
+  .expense-row {
+    align-items: flex-start;
     flex-direction: column;
   }
 }

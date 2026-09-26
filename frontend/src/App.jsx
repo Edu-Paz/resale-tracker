@@ -31,6 +31,7 @@ function App() {
       {route === 'register' && <AuthPage type="register" onNavigate={navigate} />}
       {route === 'home' && <HomePage onNavigate={navigate} />}
       {route === 'user' && <UserPage onNavigate={navigate} />}
+      {route === 'items' && <UserPage onNavigate={navigate} initialTab="items" />}
     </>
   )
 }

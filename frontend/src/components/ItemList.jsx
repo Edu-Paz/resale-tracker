@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import ResultBadge from './ResultBadge'
+import { getItemNetMargin, getItemNetProfit } from '../utils/itemFinancials'
 
 function formatCurrency(value) {
   if (value === null || value === undefined || value === '') return '—'
@@ -11,7 +12,11 @@ function formatDate(date) {
   return new Date(`${date}T00:00:00`).toLocaleDateString('pt-BR')
 }
 
-function ItemList({ items = [], categories = [], onEdit, onSell, onDelete, onAddNew }) {
+function formatExpense(expense) {
+  return `${expense.name} · ${formatCurrency(expense.amount)}`
+}
+
+function ItemList({ items = [], categories = [], onEdit, onSell, onDelete, onManageExpenses, onAddNew }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('ALL') // 'ALL' | 'AVAILABLE' | 'SOLD'
   const [categoryFilter, setCategoryFilter] = useState('')
@@ -24,7 +29,7 @@ function ItemList({ items = [], categories = [], onEdit, onSell, onDelete, onAdd
     .reduce((acc, item) => acc + Number(item.buyPrice || 0), 0)
   const totalProfitRealized = items
     .filter((item) => item.status === 'SOLD')
-    .reduce((acc, item) => acc + Number(item.profit || 0), 0)
+    .reduce((acc, item) => acc + Number(getItemNetProfit(item) || 0), 0)
 
   const filteredItems = useMemo(() => {
     return items
@@ -56,7 +61,7 @@ function ItemList({ items = [], categories = [], onEdit, onSell, onDelete, onAdd
           return Number(b.buyPrice || 0) - Number(a.buyPrice || 0)
         }
         if (sortBy === 'profit-desc') {
-          return Number(b.profit || 0) - Number(a.profit || 0)
+          return Number(getItemNetProfit(b) || 0) - Number(getItemNetProfit(a) || 0)
         }
         // Default: most recent first (by buyDate, then id)
         const dateDiff = (b.buyDate || '').localeCompare(a.buyDate || '')
@@ -130,7 +135,7 @@ function ItemList({ items = [], categories = [], onEdit, onSell, onDelete, onAdd
               </div>
               {item.status === 'SOLD' && (
                 <div className="item-stamp-wrapper">
-                  <ResultBadge profit={item.profit} margin={item.margin} />
+                  <ResultBadge profit={getItemNetProfit(item)} margin={getItemNetMargin(item)} />
                 </div>
               )}
             </div>
@@ -157,6 +162,20 @@ function ItemList({ items = [], categories = [], onEdit, onSell, onDelete, onAdd
                 </>
               )}
             </dl>
+
+            {item.expenses?.length > 0 && (
+              <div className="item-card-expenses">
+                <div className="item-card-expenses-heading">
+                  <span>Últimos gastos adicionais</span>
+                  <strong>{formatCurrency(item.expensesTotal)}</strong>
+                </div>
+                <ul>
+                  {item.expenses.slice(-3).reverse().map((expense) => (
+                    <li key={expense.id}>{formatExpense(expense)}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             <div className="item-card-footer">
               <div className="item-footer-actions">
@@ -187,6 +206,16 @@ function ItemList({ items = [], categories = [], onEdit, onSell, onDelete, onAdd
                     aria-label={`Excluir ${item.name}`}
                   >
                     Excluir
+                  </button>
+                )}
+                {onManageExpenses && (
+                  <button
+                    className="secondary-button item-expenses-button"
+                    type="button"
+                    onClick={() => onManageExpenses(item)}
+                    aria-label={`Gerenciar gastos de ${item.name}`}
+                  >
+                    Gastos
                   </button>
                 )}
               </div>
