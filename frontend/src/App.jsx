@@ -32,6 +32,8 @@ function App() {
       {route === 'home' && <HomePage onNavigate={navigate} />}
       {route === 'user' && <UserPage onNavigate={navigate} />}
       {route === 'items' && <UserPage onNavigate={navigate} initialTab="items" />}
+      {route === 'categories' && <UserPage onNavigate={navigate} initialTab="categories" />}
+      {route === 'new-item' && <UserPage onNavigate={navigate} initialTab="item" />}
     </>
   )
 }

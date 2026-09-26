@@ -8,6 +8,7 @@ import ItemList from '../components/ItemList'
 import ResultBadge from '../components/ResultBadge'
 import ExpenseManager from '../components/ExpenseManager'
 import { getItemNetMargin, getItemNetProfit } from '../utils/itemFinancials'
+import CategoryManager from '../components/CategoryManager'
 
 function getFormErrorMessage(error) {
     if (error instanceof ApiError) {
@@ -193,7 +194,7 @@ function EditItemPanel({
     const today = new Date().toISOString().slice(0, 10)
 
     return (
-        <dialog open className="modal-backdrop" aria-labelledby="edit-item-title" onClick={onClose}>
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="edit-item-title" onClick={onClose}>
             <section className="dashboard-panel form-panel modal-form-panel" aria-labelledby="edit-item-title" onClick={(event) => event.stopPropagation()}>
             <div className="panel-heading">
                 <div>
@@ -317,7 +318,7 @@ function EditItemPanel({
                 </button>
             </form>
             </section>
-        </dialog>
+        </div>
     )
 }
 
@@ -500,7 +501,7 @@ function UserPage({onNavigate, initialTab = 'overview'}) {
     const [items, setItems] = useState([])
     const [categories, setCategories] = useState([])
     const [errorMessage, setErrorMessage] = useState('')
-    const [activeTab, setActiveTab] = useState(initialTab)
+    const activeTab = initialTab
     const [sellingItem, setSellingItem] = useState(null)
     const [sellPrice, setSellPrice] = useState('')
     const [sellDate, setSellDate] = useState('')
@@ -518,6 +519,17 @@ function UserPage({onNavigate, initialTab = 'overview'}) {
     const [isDeleting, setIsDeleting] = useState(false)
     const [deleteError, setDeleteError] = useState(null)
     const [expensesItem, setExpensesItem] = useState(null)
+
+    function navigateToTab(tab) {
+        const tabRoutes = {
+            overview: routes.user,
+            items: routes.items,
+            item: routes.newItem,
+            categories: routes.categories,
+            category: routes.categories,
+        }
+        onNavigate(tabRoutes[tab] || routes.user)
+    }
 
     useEffect(() => {
         const token = getToken()
@@ -601,6 +613,13 @@ function UserPage({onNavigate, initialTab = 'overview'}) {
         )))
     }, [expensesItem])
 
+    function handleCategoryUpdated(updatedCategory) {
+        setCategories((current) => current.map((category) => category.id === updatedCategory.id ? updatedCategory : category))
+        setItems((current) => current.map((item) => item.category?.id === updatedCategory.id
+            ? { ...item, category: { ...item.category, name: updatedCategory.name } }
+            : item))
+    }
+
     function closeSellModal() {
         setSellingItem(null)
         setSellPrice('')
@@ -616,7 +635,7 @@ function UserPage({onNavigate, initialTab = 'overview'}) {
         setEditSellPrice(item.sellPrice != null ? String(item.sellPrice) : '')
         setEditSellDate(item.sellDate || '')
         setEditMessage(null)
-        setActiveTab('items')
+        navigateToTab('items')
     }
 
     function closeEditItem() {
@@ -741,16 +760,16 @@ function UserPage({onNavigate, initialTab = 'overview'}) {
 
                 <nav className="dashboard-tabs" aria-label="Navegação do painel">
                     <button className={activeTab === 'overview' ? 'dashboard-tab active' : 'dashboard-tab'}
-                            type="button" onClick={() => setActiveTab('overview')}>Visão geral
+                            type="button" onClick={() => navigateToTab('overview')}>Visão geral
                     </button>
                     <button className={activeTab === 'items' ? 'dashboard-tab active' : 'dashboard-tab'} type="button"
-                            onClick={() => setActiveTab('items')}>Itens
+                            onClick={() => navigateToTab('items')}>Itens
                     </button>
                     <button className={activeTab === 'item' ? 'dashboard-tab active' : 'dashboard-tab'} type="button"
-                            onClick={() => setActiveTab('item')}>Adicionar item
+                            onClick={() => navigateToTab('item')}>Adicionar item
                     </button>
-                    <button className={activeTab === 'category' ? 'dashboard-tab active' : 'dashboard-tab'}
-                            type="button" onClick={() => setActiveTab('category')}>Categorias
+                    <button className={activeTab === 'category' || activeTab === 'categories' ? 'dashboard-tab active' : 'dashboard-tab'}
+                            type="button" onClick={() => navigateToTab('categories')}>Categorias
                     </button>
                 </nav>
 
@@ -818,7 +837,7 @@ function UserPage({onNavigate, initialTab = 'overview'}) {
                         onSell={openSellModal}
                         onDelete={handleDeleteItem}
                         onManageExpenses={openExpenses}
-                        onAddNew={() => setActiveTab('item')}
+                        onAddNew={() => navigateToTab('item')}
                     />
                 )}
 
@@ -840,6 +859,17 @@ function UserPage({onNavigate, initialTab = 'overview'}) {
 
                 {activeTab === 'category' && <CategoryForm categories={categories}
                                                            onCategoryCreated={(category) => setCategories((currentCategories) => [...currentCategories, category])}/>}
+
+                {activeTab === 'categories' && (
+                    <CategoryManager
+                        categories={categories}
+                        onCategoryCreated={(category) => setCategories((current) => [...current, category])}
+                        onCategoryUpdated={handleCategoryUpdated}
+                        onCategoryDeleted={(categoryId) => {
+                            setCategories((current) => current.filter((category) => category.id !== categoryId))
+                        }}
+                    />
+                )}
 
                 <DeleteItemDialog
                     item={deletingItem}

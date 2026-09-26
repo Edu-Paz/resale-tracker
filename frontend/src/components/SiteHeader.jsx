@@ -12,6 +12,9 @@ function SiteHeader({ onNavigate, homePath }) {
           <AppLink className="header-link" href={routes.items} onNavigate={onNavigate}>
             Gerenciar itens
           </AppLink>
+          <AppLink className="header-link" href={routes.categories} onNavigate={onNavigate}>
+            Categorias
+          </AppLink>
         </nav>
       </div>
     </header>
