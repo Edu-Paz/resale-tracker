@@ -1,7 +1,8 @@
 package com.resaletracker.financialapi.services;
 
-import com.resaletracker.financialapi.dtos.ExpenseDTO;
-import com.resaletracker.financialapi.dtos.ExpenseUpdateDTO;
+import com.resaletracker.financialapi.dtos.expense.ExpenseDTO;
+import com.resaletracker.financialapi.dtos.expense.ExpenseInsertDTO;
+import com.resaletracker.financialapi.dtos.expense.ExpenseUpdateDTO;
 import com.resaletracker.financialapi.entities.Expense;
 import com.resaletracker.financialapi.entities.Item;
 import com.resaletracker.financialapi.entities.User;
@@ -33,7 +34,8 @@ public class ExpenseService {
     }
 
     @Transactional
-    public ExpenseDTO create(Long itemId, ExpenseDTO expenseDTO) {
+    public ExpenseDTO create(ExpenseInsertDTO expenseInsertDTO) {
+        Long itemId = expenseInsertDTO.getItemId();
         User user = authService.getAuthenticatedUser();
         Item item = itemRepository.findById(itemId)
                 .filter(foundItem -> foundItem.getCategory().getUser().getId().equals(user.getId()))
@@ -42,8 +44,8 @@ public class ExpenseService {
                 ));
 
         Expense expense = new Expense();
-        expense.setName(expenseDTO.getName());
-        expense.setAmount(expenseDTO.getAmount());
+        expense.setName(expenseInsertDTO.getName());
+        expense.setAmount(expenseInsertDTO.getAmount());
         item.addExpense(expense);
 
         Expense savedExpense = expenseRepository.save(expense);

@@ -1,10 +1,9 @@
 package com.resaletracker.financialapi.controllers;
 
-import com.resaletracker.financialapi.dtos.LoginRequestDTO;
-import com.resaletracker.financialapi.dtos.LoginResponseDTO;
+import com.resaletracker.financialapi.dtos.auth.LoginRequestDTO;
+import com.resaletracker.financialapi.dtos.auth.LoginResponseDTO;
 import com.resaletracker.financialapi.entities.User;
 import com.resaletracker.financialapi.services.TokenService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,16 +20,19 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/auth")
 public class AuthenticationController {
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
 
-    @Autowired
-    private TokenService tokenService;
+    private final TokenService tokenService;
+
+    public AuthenticationController(AuthenticationManager authenticationManager, TokenService tokenService){
+        this.authenticationManager = authenticationManager;
+        this.tokenService = tokenService;
+    }
 
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationController.class);
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequestDTO loginRequest) {
+    public ResponseEntity<Object> login(@RequestBody LoginRequestDTO loginRequest) {
         logger.info("Login attempt for user: {}", loginRequest.getUsername());
 
         UsernamePasswordAuthenticationToken usernamePassword = new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword());
@@ -38,6 +40,11 @@ public class AuthenticationController {
         try {
             Authentication auth = authenticationManager.authenticate(usernamePassword);
             logger.info("Authentication successful for user: {}", loginRequest.getUsername());
+
+            if (auth.getPrincipal() == null) {
+                logger.error("Authentication principal is null for user: {}", loginRequest.getUsername());
+                return ResponseEntity.status(500).body("Authentication error: principal is null");
+            }
 
             String token = tokenService.generateToken((User) auth.getPrincipal());
             return ResponseEntity.ok(new LoginResponseDTO(token));

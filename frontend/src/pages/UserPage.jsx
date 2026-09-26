@@ -107,7 +107,8 @@ function SellItemPanel({
     const today = new Date().toISOString().slice(0, 10)
 
     return (
-        <section className="dashboard-panel form-panel" aria-labelledby="sell-item-title">
+        <dialog open className="modal-backdrop" aria-labelledby="sell-item-title">
+            <section className="dashboard-panel form-panel modal-form-panel">
             <div className="panel-heading">
                 <div>
                     <p className="eyebrow">Registrar venda</p>
@@ -164,7 +165,8 @@ function SellItemPanel({
                     {isSelling ? 'Registrando...' : 'Registrar venda'}
                 </button>
             </form>
-        </section>
+            </section>
+        </dialog>
     )
 }
 
@@ -189,7 +191,8 @@ function EditItemPanel({
     const today = new Date().toISOString().slice(0, 10)
 
     return (
-        <section className="dashboard-panel form-panel" aria-labelledby="edit-item-title">
+        <dialog open className="modal-backdrop" aria-labelledby="edit-item-title">
+            <section className="dashboard-panel form-panel modal-form-panel" aria-labelledby="edit-item-title">
             <div className="panel-heading">
                 <div>
                     <p className="eyebrow">Atualizar estoque</p>
@@ -311,7 +314,8 @@ function EditItemPanel({
                     {isEditing ? 'Salvando...' : 'Salvar alterações'}
                 </button>
             </form>
-        </section>
+            </section>
+        </dialog>
     )
 }
 

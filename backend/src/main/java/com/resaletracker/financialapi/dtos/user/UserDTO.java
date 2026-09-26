@@ -1,4 +1,4 @@
-package com.resaletracker.financialapi.dtos;
+package com.resaletracker.financialapi.dtos.user;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.resaletracker.financialapi.entities.User;

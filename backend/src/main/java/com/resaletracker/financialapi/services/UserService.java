@@ -1,7 +1,7 @@
 package com.resaletracker.financialapi.services;
 
-import com.resaletracker.financialapi.dtos.UserDTO;
-import com.resaletracker.financialapi.dtos.UserRegisterDTO;
+import com.resaletracker.financialapi.dtos.user.UserDTO;
+import com.resaletracker.financialapi.dtos.user.UserRegisterDTO;
 import com.resaletracker.financialapi.entities.User;
 import com.resaletracker.financialapi.repositories.UserRepository;
 import com.resaletracker.financialapi.services.exceptions.BusinessException;

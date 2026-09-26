@@ -1,7 +1,8 @@
 package com.resaletracker.financialapi.controllers;
 
-import com.resaletracker.financialapi.dtos.ExpenseDTO;
-import com.resaletracker.financialapi.dtos.ExpenseUpdateDTO;
+import com.resaletracker.financialapi.dtos.expense.ExpenseDTO;
+import com.resaletracker.financialapi.dtos.expense.ExpenseInsertDTO;
+import com.resaletracker.financialapi.dtos.expense.ExpenseUpdateDTO;
 import com.resaletracker.financialapi.services.ExpenseService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -21,8 +22,10 @@ public class ExpenseController {
     }
 
     @PostMapping
-    public ResponseEntity<ExpenseDTO> createExpense(@RequestBody @Valid ExpenseDTO expenseDTO) {
-        ExpenseDTO savedExpense = expenseService.create(expenseDTO.getItemDTO().getId(), expenseDTO);
+    public ResponseEntity<ExpenseDTO> createExpense(
+            @RequestBody @Valid ExpenseInsertDTO expenseInsertDTO
+    ) {
+        ExpenseDTO savedExpense = expenseService.create(expenseInsertDTO);
 
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
