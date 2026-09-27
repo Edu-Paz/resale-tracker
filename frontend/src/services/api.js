@@ -29,6 +29,7 @@ function authorized(token, path, options = {}) {
 
 export function getCurrentUser(token) { return authorized(token, '/users/me') }
 export function getItems(token, categoryId) { return authorized(token, `/items${categoryId ? `?categoryId=${categoryId}` : ''}`) }
+export function getItemById(token, itemId) { return authorized(token, `/items/${itemId}`) }
 export function getCategories(token) { return authorized(token, '/categories') }
 export function createItem(token, item) { return authorized(token, '/items', { method: 'POST', body: JSON.stringify(item) }) }
 export function updateItem(token, itemId, item) { return authorized(token, `/items/${itemId}`, { method: 'PUT', body: JSON.stringify(item) }) }

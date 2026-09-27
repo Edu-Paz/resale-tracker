@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ApiError, createExpense, deleteExpense, getExpensesByItem, updateExpense } from '../services/api'
+import { ApiError, createExpense, deleteExpense, getExpensesByItem, getItemById, updateExpense } from '../services/api'
 import { getToken } from '../services/session'
 
 function formatCurrency(value) {
@@ -25,7 +25,7 @@ function ExpenseManager({ item, onClose, onExpensesChanged }) {
       .then((data) => {
         if (active) {
           setExpenses(data)
-          onExpensesChanged?.(data.reduce((sum, expense) => sum + Number(expense.amount || 0), 0), data)
+          onExpensesChanged?.(null, data)
         }
       })
       .catch((error) => {
@@ -71,7 +71,9 @@ function ExpenseManager({ item, onClose, onExpensesChanged }) {
         const nextExpenses = editingId
           ? current.map((expense) => expense.id === saved.id ? saved : expense)
           : [...current, saved]
-        onExpensesChanged?.(nextExpenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0), nextExpenses)
+        getItemById(token, item.id)
+          .then((updatedItem) => onExpensesChanged?.(updatedItem, nextExpenses))
+          .catch((error) => setMessage({ type: 'error', text: errorMessage(error) }))
         return nextExpenses
       })
       resetForm()
@@ -89,7 +91,9 @@ function ExpenseManager({ item, onClose, onExpensesChanged }) {
       await deleteExpense(getToken(), expense.id)
       setExpenses((current) => {
         const nextExpenses = current.filter((currentExpense) => currentExpense.id !== expense.id)
-        onExpensesChanged?.(nextExpenses.reduce((sum, currentExpense) => sum + Number(currentExpense.amount || 0), 0), nextExpenses)
+        getItemById(getToken(), item.id)
+          .then((updatedItem) => onExpensesChanged?.(updatedItem, nextExpenses))
+          .catch((error) => setMessage({ type: 'error', text: errorMessage(error) }))
         return nextExpenses
       })
       if (editingId === expense.id) resetForm()

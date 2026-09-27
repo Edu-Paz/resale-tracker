@@ -22,18 +22,18 @@ public class ExpenseService {
     private final ExpenseRepository expenseRepository;
     private final ItemRepository itemRepository;
     private final AuthService authService;
-    private final ItemService itemService;
+    private final BalanceService balanceService;
 
     public ExpenseService(
             ExpenseRepository expenseRepository,
             ItemRepository itemRepository,
             AuthService authService,
-            ItemService itemService
+            BalanceService balanceService
     ) {
         this.expenseRepository = expenseRepository;
         this.itemRepository = itemRepository;
         this.authService = authService;
-        this.itemService = itemService;
+        this.balanceService = balanceService;
     }
 
     @Transactional
@@ -50,7 +50,7 @@ public class ExpenseService {
         expense.setName(expenseInsertDTO.getName());
         expense.setAmount(expenseInsertDTO.getAmount());
         item.addExpense(expense);
-        itemService.recalculateFinancialMetrics(item);
+        balanceService.recalculateItemMetrics(item);
 
         Expense savedExpense = expenseRepository.save(expense);
 
@@ -80,7 +80,7 @@ public class ExpenseService {
 
         expense.setName(expenseUpdateDTO.getName());
         expense.setAmount(expenseUpdateDTO.getAmount());
-        itemService.recalculateFinancialMetrics(expense.getItem());
+        balanceService.recalculateItemMetrics(expense.getItem());
 
         return new ExpenseDTO(expenseRepository.save(expense));
     }
@@ -114,6 +114,6 @@ public class ExpenseService {
         Item item = expense.getItem();
         item.removeExpense(expense);
         expenseRepository.delete(expense);
-        itemService.recalculateFinancialMetrics(item);
+        balanceService.recalculateItemMetrics(item);
     }
 }
