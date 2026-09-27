@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
 import ResultBadge from './ResultBadge'
-import { getItemNetMargin, getItemNetProfit } from '../utils/itemFinancials'
 
 function formatCurrency(value) {
   if (value === null || value === undefined || value === '') return '—'
@@ -24,12 +23,6 @@ function ItemList({ items = [], categories = [], onEdit, onSell, onDelete, onMan
 
   const availableCount = items.filter((item) => item.status === 'AVAILABLE').length
   const soldCount = items.filter((item) => item.status === 'SOLD').length
-  const totalInvestedInStock = items
-    .filter((item) => item.status === 'AVAILABLE')
-    .reduce((acc, item) => acc + Number(item.buyPrice || 0), 0)
-  const totalProfitRealized = items
-    .filter((item) => item.status === 'SOLD')
-    .reduce((acc, item) => acc + Number(getItemNetProfit(item) || 0), 0)
 
   const filteredItems = useMemo(() => {
     return items
@@ -61,7 +54,7 @@ function ItemList({ items = [], categories = [], onEdit, onSell, onDelete, onMan
           return Number(b.buyPrice || 0) - Number(a.buyPrice || 0)
         }
         if (sortBy === 'profit-desc') {
-          return Number(getItemNetProfit(b) || 0) - Number(getItemNetProfit(a) || 0)
+          return Number(b.profit || 0) - Number(a.profit || 0)
         }
         // Default: most recent first (by buyDate, then id)
         const dateDiff = (b.buyDate || '').localeCompare(a.buyDate || '')
@@ -135,7 +128,7 @@ function ItemList({ items = [], categories = [], onEdit, onSell, onDelete, onMan
               </div>
               {item.status === 'SOLD' && (
                 <div className="item-stamp-wrapper">
-                  <ResultBadge profit={getItemNetProfit(item)} margin={getItemNetMargin(item)} />
+                  <ResultBadge profit={item.profit} margin={item.margin} />
                 </div>
               )}
             </div>
@@ -167,7 +160,6 @@ function ItemList({ items = [], categories = [], onEdit, onSell, onDelete, onMan
               <div className="item-card-expenses">
                 <div className="item-card-expenses-heading">
                   <span>Últimos gastos adicionais</span>
-                  <strong>{formatCurrency(item.expensesTotal)}</strong>
                 </div>
                 <ul>
                   {item.expenses.slice(-3).reverse().map((expense) => (
@@ -249,14 +241,12 @@ function ItemList({ items = [], categories = [], onEdit, onSell, onDelete, onMan
             <div className="inventory-stat-card">
               <span className="inventory-stat-label">Total em estoque</span>
               <strong className="inventory-stat-value">{availableCount} {availableCount === 1 ? 'item' : 'itens'}</strong>
-              <span className="inventory-stat-detail">{formatCurrency(totalInvestedInStock)} investidos</span>
+              <span className="inventory-stat-detail">Itens disponíveis para venda</span>
             </div>
             <div className="inventory-stat-card">
               <span className="inventory-stat-label">Itens vendidos</span>
               <strong className="inventory-stat-value">{soldCount} {soldCount === 1 ? 'venda' : 'vendas'}</strong>
-              <span className={`inventory-stat-detail ${totalProfitRealized >= 0 ? 'metric-profit' : 'metric-loss'}`}>
-                {totalProfitRealized >= 0 ? '+' : ''}{formatCurrency(totalProfitRealized)} de resultado
-              </span>
+              <span className="inventory-stat-detail">Resultado informado pela API em cada item</span>
             </div>
             <div className="inventory-stat-card">
               <span className="inventory-stat-label">Fichas cadastradas</span>

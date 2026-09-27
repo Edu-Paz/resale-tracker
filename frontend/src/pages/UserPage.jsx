@@ -7,7 +7,6 @@ import ItemForm from '../components/ItemForm'
 import ItemList from '../components/ItemList'
 import ResultBadge from '../components/ResultBadge'
 import ExpenseManager from '../components/ExpenseManager'
-import { getItemNetMargin, getItemNetProfit } from '../utils/itemFinancials'
 import CategoryManager from '../components/CategoryManager'
 
 function getFormErrorMessage(error) {
@@ -367,13 +366,6 @@ function OverviewTab({
     onEditItem,
     onSellItem,
 }) {
-    const totalProfit = soldItems.reduce((total, item) => total + Number(getItemNetProfit(item) || 0), 0)
-    const totalInvested = items.reduce((total, item) => total + Number(item.buyPrice || 0), 0)
-    const totalLoss = soldItems.reduce((total, item) => {
-        const profit = Number(getItemNetProfit(item) || 0)
-        return total + (profit < 0 ? Math.abs(profit) : 0)
-    }, 0)
-
     const soldCountLabel = soldItems.length === 1 ? 'venda concluída' : 'vendas concluídas'
     const itemsCountLabel = items.length === 1 ? 'item cadastrado' : 'itens cadastrados'
     const categoriesCountLabel = categories.length === 1 ? 'categoria criada' : 'categorias criadas'
@@ -388,18 +380,18 @@ function OverviewTab({
                     <span className="metric-detail">Resultado atual</span>
                 </article>
                 <article className="metric-card">
-                    <span className="user-label">Lucro realizado</span>
-                    <strong className="metric-profit">{formatCurrency(totalProfit)}</strong>
-                    <span className="metric-detail">{soldItems.length} {soldCountLabel}</span>
+                    <span className="user-label">Itens vendidos</span>
+                    <strong>{soldItems.length}</strong>
+                    <span className="metric-detail">{soldCountLabel}</span>
                 </article>
                 <article className="metric-card">
-                    <span className="user-label">Prejuízo</span>
-                    <strong className="metric-loss">{formatCurrency(totalLoss)}</strong>
-                    <span className="metric-detail">Nas vendas abaixo do custo</span>
+                    <span className="user-label">Itens em estoque</span>
+                    <strong>{availableItems.length}</strong>
+                    <span className="metric-detail">{availableCountLabel}</span>
                 </article>
                 <article className="metric-card">
-                    <span className="user-label">Capital em estoque</span>
-                    <strong>{formatCurrency(totalInvested)}</strong>
+                    <span className="user-label">Categorias</span>
+                    <strong>{categories.length}</strong>
                     <span className="metric-detail">{items.length} {itemsCountLabel}</span>
                 </article>
             </section>
@@ -471,7 +463,7 @@ function OverviewTab({
                                         <span>{formatDate(item.sellDate)}</span>
                                     </div>
                                     <div className="item-actions-buttons">
-                                        <ResultBadge profit={getItemNetProfit(item)} margin={getItemNetMargin(item)} />
+                                        <ResultBadge profit={item.profit} margin={item.margin} />
                                         <button
                                             className="secondary-button"
                                             type="button"
@@ -551,7 +543,6 @@ function UserPage({onNavigate, initialTab = 'overview'}) {
                 return {
                     ...item,
                     expenses: itemExpenses,
-                    expensesTotal: itemExpenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0),
                 }
             }))
                 setCategories(userCategories)
@@ -606,10 +597,12 @@ function UserPage({onNavigate, initialTab = 'overview'}) {
         setExpensesItem(item)
     }
 
-    const handleExpensesChanged = useCallback((expensesTotal, expenses) => {
+    const handleExpensesChanged = useCallback((updatedItem, expenses) => {
         if (!expensesItem) return
         setItems((currentItems) => currentItems.map((item) => (
-            item.id === expensesItem.id ? { ...item, expenses, expensesTotal } : item
+            item.id === expensesItem.id
+                ? updatedItem ? { ...updatedItem, expenses } : { ...item, expenses }
+                : item
         )))
     }, [expensesItem])
 
@@ -683,7 +676,6 @@ function UserPage({onNavigate, initialTab = 'overview'}) {
                     ? {
                         ...updatedItem,
                         expenses: currentItem.expenses || [],
-                        expensesTotal: currentItem.expensesTotal || 0,
                     }
                     : currentItem
             )))
@@ -737,7 +729,6 @@ function UserPage({onNavigate, initialTab = 'overview'}) {
                     ? {
                         ...updatedItem,
                         expenses: item.expenses || [],
-                        expensesTotal: item.expensesTotal || 0,
                     }
                     : item
             )))
@@ -870,7 +861,7 @@ function UserPage({onNavigate, initialTab = 'overview'}) {
                 )}
 
                 {activeTab === 'item' && <ItemForm categories={categories}
-                                                   onItemCreated={(item) => setItems((currentItems) => [...currentItems, { ...item, expenses: [], expensesTotal: 0 }])}
+                                                   onItemCreated={(item) => setItems((currentItems) => [...currentItems, { ...item, expenses: [] }])}
                                                    onCategoryCreated={(category) => setCategories((currentCategories) => [...currentCategories, category])}/>}
 
                 {activeTab === 'category' && <CategoryForm categories={categories}

@@ -87,9 +87,25 @@ Authorization: Bearer <token>
 {
   "id": 1,
   "username": "john_doe",
-  "balance": 1500.00
+  "balance": 0.00
 }
 ```
+
+`balance` is calculated exclusively by the backend. It is not a user-provided or persisted value.
+The formula is:
+
+```text
+balance = sum of sale prices
+        - sum of purchase prices
+        - sum of additional expenses
+```
+
+Therefore, a user with no items has a balance of `0.00`, an item bought for `300.00`
+and not sold produces `-300.00`, and an item bought for `300.00` and sold for
+`500.00` produces `200.00`. Additional expenses reduce the balance.
+
+Category responses contain a lightweight user summary (`id` and `username`) and do
+not include `balance`. The calculated balance is returned by the user endpoints.
 
 ---
 
@@ -106,7 +122,7 @@ Authorization: Bearer <token>
 {
   "id": 1,
   "username": "john_doe",
-  "balance": 1500.00
+  "balance": 0.00
 }
 ```
 
@@ -715,6 +731,7 @@ The `item` field in `ExpenseDTO` is an `ItemSummaryDTO` and contains only the it
 ## Notes
 
 - All monetary values use `BigDecimal` format (e.g., `500.00`)
+- `balance`, `profit`, and `margin` are calculated by the backend; the frontend must display the returned values and must not calculate them independently
 - Dates use ISO 8601 format (e.g., `2024-01-15`)
 - Users can only access their own data (categories, items, user profile)
 - JWT tokens expire after 24 hours (86,400,000 ms)

@@ -15,8 +15,6 @@ import com.resaletracker.financialapi.services.exceptions.ResourceNotFoundExcept
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.List;
 
 @Service
@@ -28,11 +26,14 @@ public class ItemService {
     private final ItemRepository itemRepository;
     private final CategoryRepository categoryRepository;
     private final AuthService authService;
+    private final BalanceService balanceService;
 
-    public ItemService(ItemRepository itemRepository, CategoryRepository categoryRepository, AuthService authService) {
+    public ItemService(ItemRepository itemRepository, CategoryRepository categoryRepository,
+                       AuthService authService, BalanceService balanceService) {
         this.itemRepository = itemRepository;
         this.categoryRepository = categoryRepository;
         this.authService = authService;
+        this.balanceService = balanceService;
     }
 
     @Transactional(readOnly = true)
@@ -88,7 +89,7 @@ public class ItemService {
         item.setSellDate(sellDTO.getSellDate());
         item.setStatus(ItemStatus.SOLD);
 
-        recalculateFinancialMetrics(item);
+        balanceService.recalculateItemMetrics(item);
 
         return new ItemDTO(item);
     }
@@ -156,30 +157,11 @@ public class ItemService {
             }
         }
 
-        if (item.getStatus() == ItemStatus.SOLD && (itemUpdateDTO.getBuyPrice() != null || itemUpdateDTO.getSellPrice() != null)) {
-            recalculateFinancialMetrics(item);
+        if (item.getStatus() == ItemStatus.SOLD) {
+            balanceService.recalculateItemMetrics(item);
         }
 
         return new ItemDTO(item);
     }
 
-    public void recalculateFinancialMetrics(Item item) {
-        if (item.getStatus() == ItemStatus.SOLD && item.getSellPrice() != null) {
-            BigDecimal additionalExpenses = item.getExpense().stream()
-                    .map(expense -> expense.getAmount() == null
-                            ? BigDecimal.ZERO
-                            : expense.getAmount())
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-            BigDecimal totalCost = item.getBuyPrice().add(additionalExpenses);
-            BigDecimal profit = item.getSellPrice().subtract(totalCost);
-            item.setProfit(profit);
-
-            if (item.getSellPrice().compareTo(BigDecimal.ZERO) > 0) {
-                BigDecimal margin = profit.divide(item.getSellPrice(), 4, RoundingMode.HALF_UP).multiply(new BigDecimal("100"));
-                item.setMargin(margin);
-            } else {
-                item.setMargin(BigDecimal.ZERO);
-            }
-        }
-    }
 }

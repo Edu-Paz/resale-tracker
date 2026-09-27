@@ -3,7 +3,6 @@ package com.resaletracker.financialapi.services;
 import com.resaletracker.financialapi.dtos.user.UserDTO;
 import com.resaletracker.financialapi.dtos.user.UserRegisterDTO;
 import com.resaletracker.financialapi.entities.User;
-import com.resaletracker.financialapi.repositories.ItemRepository;
 import com.resaletracker.financialapi.repositories.UserRepository;
 import com.resaletracker.financialapi.services.exceptions.BusinessException;
 import com.resaletracker.financialapi.services.exceptions.ResourceNotFoundException;
@@ -16,16 +15,16 @@ import java.math.BigDecimal;
 @Service
 public class UserService {
     private final UserRepository userRepository;
-    private final ItemRepository itemRepository;
+    private final BalanceService balanceService;
     private final PasswordEncoder passwordEncoder;
 
     public UserService(
             UserRepository userRepository,
-            ItemRepository itemRepository,
+            BalanceService balanceService,
             PasswordEncoder passwordEncoder
     ) {
         this.userRepository = userRepository;
-        this.itemRepository = itemRepository;
+        this.balanceService = balanceService;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -33,7 +32,7 @@ public class UserService {
     public UserDTO findById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
-        return new UserDTO(user, calculateBalance(id));
+        return new UserDTO(user, balanceService.calculateByUserId(id));
     }
 
     @Transactional
@@ -61,7 +60,4 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
-    private BigDecimal calculateBalance(Long userId) {
-        return itemRepository.calculateBalanceByUserId(userId);
-    }
 }
