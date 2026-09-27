@@ -23,6 +23,12 @@ public class UserDTO {
     public UserDTO(User entity) {
         this.id = entity.getId();
         this.username = entity.getUsername();
-        this.balance = entity.getBalance();
+        this.balance = BigDecimal.ZERO;
+    }
+
+    public UserDTO(User entity, BigDecimal balance) {
+        this.id = entity.getId();
+        this.username = entity.getUsername();
+        this.balance = balance;
     }
 }

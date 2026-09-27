@@ -3,6 +3,7 @@ package com.resaletracker.financialapi.services;
 import com.resaletracker.financialapi.dtos.user.UserDTO;
 import com.resaletracker.financialapi.dtos.user.UserRegisterDTO;
 import com.resaletracker.financialapi.entities.User;
+import com.resaletracker.financialapi.repositories.ItemRepository;
 import com.resaletracker.financialapi.repositories.UserRepository;
 import com.resaletracker.financialapi.services.exceptions.BusinessException;
 import com.resaletracker.financialapi.services.exceptions.ResourceNotFoundException;
@@ -15,10 +16,16 @@ import java.math.BigDecimal;
 @Service
 public class UserService {
     private final UserRepository userRepository;
+    private final ItemRepository itemRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(
+            UserRepository userRepository,
+            ItemRepository itemRepository,
+            PasswordEncoder passwordEncoder
+    ) {
         this.userRepository = userRepository;
+        this.itemRepository = itemRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -26,7 +33,7 @@ public class UserService {
     public UserDTO findById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
-        return new UserDTO(user);
+        return new UserDTO(user, calculateBalance(id));
     }
 
     @Transactional
@@ -41,10 +48,9 @@ public class UserService {
         User user = new User();
         user.setUsername(userRegisterDTO.getUsername());
         user.setPassword(passwordEncoder.encode(userRegisterDTO.getPassword()));
-        user.setBalance(BigDecimal.ZERO);
 
         user = userRepository.save(user);
-        return new UserDTO(user);
+        return new UserDTO(user, BigDecimal.ZERO);
     }
 
     @Transactional
@@ -53,5 +59,9 @@ public class UserService {
             throw new ResourceNotFoundException("User not found with id: " + id);
         }
         userRepository.deleteById(id);
+    }
+
+    private BigDecimal calculateBalance(Long userId) {
+        return itemRepository.calculateBalanceByUserId(userId);
     }
 }

@@ -3,8 +3,8 @@ export function getItemExpensesTotal(item) {
 }
 
 export function getItemNetProfit(item) {
-  if (item.profit === null || item.profit === undefined) return null
-  return Number(item.profit) - getItemExpensesTotal(item)
+  if (item.sellPrice === null || item.sellPrice === undefined) return null
+  return Number(item.sellPrice) - Number(item.buyPrice || 0) - getItemExpensesTotal(item)
 }
 
 export function getItemNetMargin(item) {
