@@ -1,6 +1,7 @@
 package com.resaletracker.financialapi.controllers;
 
 import com.resaletracker.financialapi.dtos.user.UserDTO;
+import com.resaletracker.financialapi.dtos.user.FinancialSummaryDTO;
 import com.resaletracker.financialapi.dtos.user.UserRegisterDTO;
 import com.resaletracker.financialapi.entities.User;
 import com.resaletracker.financialapi.services.UserService;
@@ -56,6 +57,21 @@ public class UserController {
         }
 
         return ResponseEntity.ok(userService.findById(authenticatedUser.getId()));
+    }
+
+    @GetMapping(value = "/me/financial-summary")
+    public ResponseEntity<FinancialSummaryDTO> financialSummary() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new AccessDeniedException("Access Denied: User not authenticated.");
+        }
+
+        User authenticatedUser = (User) authentication.getPrincipal();
+        if (authenticatedUser == null) {
+            throw new AccessDeniedException("Access Denied: User principal not found.");
+        }
+
+        return ResponseEntity.ok(userService.financialSummary(authenticatedUser.getId()));
     }
 
     @PostMapping(value = "/register")

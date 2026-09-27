@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useState} from 'react'
-import {ApiError, deleteItem, getCategories, getCurrentUser, getExpensesByItem, getItems, sellItem, updateItem} from '../services/api'
+import {ApiError, deleteItem, getCategories, getCurrentUser, getExpensesByItem, getFinancialSummary, getItems, sellItem, updateItem} from '../services/api'
 import {clearToken, getToken} from '../services/session'
 import {routes} from '../routes/appRoutes'
 import CategoryForm from '../components/CategoryForm'
@@ -38,6 +38,10 @@ function parseDateInput(value) {
 
 function formatCurrency(value) {
     return `R$ ${Number(value).toFixed(2).replace('.', ',')}`
+}
+
+function formatPercentage(value) {
+    return `${Number(value || 0).toFixed(2).replace('.', ',')}%`
 }
 
 function formatDate(date) {
@@ -359,17 +363,17 @@ function DeleteItemDialog({ item, error, isDeleting, onCancel, onConfirm }) {
 
 function OverviewTab({
     user,
-    items,
+    financialSummary,
     categories,
     availableItems,
     soldItems,
     onEditItem,
     onSellItem,
 }) {
-    const soldCountLabel = soldItems.length === 1 ? 'venda concluída' : 'vendas concluídas'
-    const itemsCountLabel = items.length === 1 ? 'item cadastrado' : 'itens cadastrados'
+    const soldCount = financialSummary?.soldItems ?? soldItems.length
+    const availableCount = financialSummary?.availableItems ?? availableItems.length
+    const soldCountLabel = soldCount === 1 ? 'venda concluída' : 'vendas concluídas'
     const categoriesCountLabel = categories.length === 1 ? 'categoria criada' : 'categorias criadas'
-    const availableCountLabel = availableItems.length === 1 ? 'item aguardando venda' : 'itens aguardando venda'
 
     return (
         <>
@@ -380,19 +384,19 @@ function OverviewTab({
                     <span className="metric-detail">Resultado atual</span>
                 </article>
                 <article className="metric-card">
-                    <span className="user-label">Itens vendidos</span>
-                    <strong>{soldItems.length}</strong>
-                    <span className="metric-detail">{soldCountLabel}</span>
+                    <span className="user-label">Lucro realizado</span>
+                    <strong className="metric-profit">{formatCurrency(financialSummary?.totalProfit ?? 0)}</strong>
+                    <span className="metric-detail">{soldCount} {soldCountLabel}</span>
                 </article>
                 <article className="metric-card">
-                    <span className="user-label">Itens em estoque</span>
-                    <strong>{availableItems.length}</strong>
-                    <span className="metric-detail">{availableCountLabel}</span>
+                    <span className="user-label">Prejuízo acumulado</span>
+                    <strong className="metric-loss">{formatCurrency(financialSummary?.totalLoss ?? 0)}</strong>
+                    <span className="metric-detail">Vendas abaixo do custo</span>
                 </article>
                 <article className="metric-card">
-                    <span className="user-label">Categorias</span>
-                    <strong>{categories.length}</strong>
-                    <span className="metric-detail">{items.length} {itemsCountLabel}</span>
+                    <span className="user-label">Margem média</span>
+                    <strong>{formatPercentage(financialSummary?.averageMargin)}</strong>
+                    <span className="metric-detail">{availableCount} itens aguardando venda</span>
                 </article>
             </section>
 
@@ -449,7 +453,7 @@ function OverviewTab({
                             <p className="eyebrow">Histórico</p>
                             <h2 id="activity-title">Últimas vendas</h2>
                         </div>
-                        <span className="panel-count">{soldItems.length}</span>
+                        <span className="panel-count">{soldCount}</span>
                     </div>
                     {soldItems.length === 0 ? (
                         <p className="empty-state">Suas vendas concluídas aparecerão aqui.</p>
@@ -482,7 +486,7 @@ function OverviewTab({
 
             <section className="dashboard-footer" aria-label="Resumo da conta">
                 <span><strong>{categories.length}</strong> {categoriesCountLabel}</span>
-                <span><strong>{availableItems.length}</strong> {availableCountLabel}</span>
+                <span><strong>{formatCurrency(financialSummary?.totalExpenses ?? 0)}</strong> em gastos adicionais</span>
             </section>
         </>
     )
@@ -492,6 +496,7 @@ function UserPage({onNavigate, initialTab = 'overview'}) {
     const [user, setUser] = useState(null)
     const [items, setItems] = useState([])
     const [categories, setCategories] = useState([])
+    const [financialSummary, setFinancialSummary] = useState(null)
     const [errorMessage, setErrorMessage] = useState('')
     const activeTab = initialTab
     const [sellingItem, setSellingItem] = useState(null)
@@ -530,14 +535,15 @@ function UserPage({onNavigate, initialTab = 'overview'}) {
             return
         }
 
-        Promise.all([getCurrentUser(token), getItems(token), getCategories(token)])
-        .then(async ([currentUser, userItems, userCategories]) => {
+        Promise.all([getCurrentUser(token), getFinancialSummary(token), getItems(token), getCategories(token)])
+        .then(async ([currentUser, summary, userItems, userCategories]) => {
             const expenseData = await Promise.all(userItems.map(async (item) => {
                 const expenses = await getExpensesByItem(token, item.id)
                 return [item.id, expenses]
             }))
             const expensesByItem = new Map(expenseData)
             setUser(currentUser)
+            setFinancialSummary(summary)
             setItems(userItems.map((item) => {
                 const itemExpenses = expensesByItem.get(item.id) || []
                 return {
@@ -577,8 +583,9 @@ function UserPage({onNavigate, initialTab = 'overview'}) {
         try {
             await deleteItem(token, deletingItem.id)
             setItems((currentItems) => currentItems.filter((item) => item.id !== deletingItem.id))
-            const currentUser = await getCurrentUser(token)
+            const [currentUser, summary] = await Promise.all([getCurrentUser(token), getFinancialSummary(token)])
             setUser(currentUser)
+            setFinancialSummary(summary)
             setDeletingItem(null)
         } catch (error) {
             setDeleteError(getFormErrorMessage(error))
@@ -604,6 +611,9 @@ function UserPage({onNavigate, initialTab = 'overview'}) {
                 ? updatedItem ? { ...updatedItem, expenses } : { ...item, expenses }
                 : item
         )))
+        getFinancialSummary(getToken())
+            .then(setFinancialSummary)
+            .catch(() => setErrorMessage('Não foi possível atualizar o resumo financeiro.'))
     }, [expensesItem])
 
     function handleCategoryUpdated(updatedCategory) {
@@ -679,8 +689,9 @@ function UserPage({onNavigate, initialTab = 'overview'}) {
                     }
                     : currentItem
             )))
-            const currentUser = await getCurrentUser(token)
+            const [currentUser, summary] = await Promise.all([getCurrentUser(token), getFinancialSummary(token)])
             setUser(currentUser)
+            setFinancialSummary(summary)
             closeEditItem()
         } catch (error) {
             setEditMessage({type: 'error', text: getFormErrorMessage(error)})
@@ -732,8 +743,9 @@ function UserPage({onNavigate, initialTab = 'overview'}) {
                     }
                     : item
             )))
-            const currentUser = await getCurrentUser(token)
+            const [currentUser, summary] = await Promise.all([getCurrentUser(token), getFinancialSummary(token)])
             setUser(currentUser)
+            setFinancialSummary(summary)
             closeSellModal()
         } catch (error) {
             setSellMessage({type: 'error', text: getFormErrorMessage(error)})
@@ -851,7 +863,7 @@ function UserPage({onNavigate, initialTab = 'overview'}) {
                 {activeTab === 'overview' && (
                     <OverviewTab
                         user={user}
-                        items={items}
+                        financialSummary={financialSummary}
                         categories={categories}
                         availableItems={availableItems}
                         soldItems={soldItems}

@@ -28,6 +28,7 @@ function authorized(token, path, options = {}) {
 }
 
 export function getCurrentUser(token) { return authorized(token, '/users/me') }
+export function getFinancialSummary(token) { return authorized(token, '/users/me/financial-summary') }
 export function getItems(token, categoryId) { return authorized(token, `/items${categoryId ? `?categoryId=${categoryId}` : ''}`) }
 export function getItemById(token, itemId) { return authorized(token, `/items/${itemId}`) }
 export function getCategories(token) { return authorized(token, '/categories') }
