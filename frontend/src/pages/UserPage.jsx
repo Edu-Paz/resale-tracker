@@ -678,7 +678,15 @@ function UserPage({onNavigate, initialTab = 'overview'}) {
         try {
             const token = getToken()
             const updatedItem = await updateItem(token, editingItem.id, item)
-            setItems((currentItems) => currentItems.map((currentItem) => (currentItem.id === updatedItem.id ? updatedItem : currentItem)))
+            setItems((currentItems) => currentItems.map((currentItem) => (
+                currentItem.id === updatedItem.id
+                    ? {
+                        ...updatedItem,
+                        expenses: currentItem.expenses || [],
+                        expensesTotal: currentItem.expensesTotal || 0,
+                    }
+                    : currentItem
+            )))
             const currentUser = await getCurrentUser(token)
             setUser(currentUser)
             closeEditItem()
@@ -724,7 +732,15 @@ function UserPage({onNavigate, initialTab = 'overview'}) {
                 sellPrice: price,
                 sellDate: parsedSellDate,
             })
-            setItems((currentItems) => currentItems.map((item) => (item.id === updatedItem.id ? updatedItem : item)))
+            setItems((currentItems) => currentItems.map((item) => (
+                item.id === updatedItem.id
+                    ? {
+                        ...updatedItem,
+                        expenses: item.expenses || [],
+                        expensesTotal: item.expensesTotal || 0,
+                    }
+                    : item
+            )))
             const currentUser = await getCurrentUser(token)
             setUser(currentUser)
             closeSellModal()

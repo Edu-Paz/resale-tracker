@@ -8,10 +8,12 @@ function CategoryManager({ categories, onCategoryCreated, onCategoryUpdated, onC
   const [message, setMessage] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [deletingId, setDeletingId] = useState(null)
+  const [categoryToDelete, setCategoryToDelete] = useState(null)
 
-  function getError(error) {
+  function getError(error, operation = 'create') {
     if (error instanceof ApiError && error.status === 422) {
-      return editingId ? 'Já existe uma categoria com esse nome ou ela possui itens vinculados.' : 'Já existe uma categoria com esse nome.'
+      if (operation === 'delete') return 'Não é possível excluir uma categoria que possui itens vinculados. Remova ou mova os itens antes de tentar novamente.'
+      return operation === 'update' ? 'Já existe uma categoria com esse nome.' : 'Já existe uma categoria com esse nome.'
     }
     return error instanceof ApiError ? error.message : 'Não foi possível concluir a operação. Tente novamente.'
   }
@@ -43,22 +45,24 @@ function CategoryManager({ categories, onCategoryCreated, onCategoryUpdated, onC
       cancelEditing()
       setMessage({ type: 'success', text: successText })
     } catch (error) {
-      setMessage({ type: 'error', text: getError(error) })
+      setMessage({ type: 'error', text: getError(error, editingId ? 'update' : 'create') })
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  async function handleDelete(category) {
-    if (!window.confirm(`Excluir a categoria "${category.name}"?`)) return
+  async function confirmDelete() {
+    if (!categoryToDelete || deletingId) return
+    const category = categoryToDelete
     setDeletingId(category.id)
     setMessage(null)
     try {
       await deleteCategory(getToken(), category.id)
       onCategoryDeleted(category.id)
       setMessage({ type: 'success', text: 'Categoria excluída.' })
+      setCategoryToDelete(null)
     } catch (error) {
-      setMessage({ type: 'error', text: getError(error) })
+      setMessage({ type: 'error', text: getError(error, 'delete') })
     } finally {
       setDeletingId(null)
     }
@@ -90,7 +94,7 @@ function CategoryManager({ categories, onCategoryCreated, onCategoryUpdated, onC
               <strong>{category.name}</strong>
               <div className="item-footer-actions">
                 <button className="secondary-button" type="button" onClick={() => startEditing(category)}>Editar</button>
-                <button className="destructive-button" type="button" onClick={() => handleDelete(category)} disabled={deletingId === category.id}>{deletingId === category.id ? 'Excluindo...' : 'Excluir'}</button>
+                <button className="destructive-button" type="button" onClick={() => setCategoryToDelete(category)} disabled={deletingId === category.id}>{deletingId === category.id ? 'Excluindo...' : 'Excluir'}</button>
               </div>
             </article>
           ))}
@@ -118,6 +122,25 @@ function CategoryManager({ categories, onCategoryCreated, onCategoryUpdated, onC
               </div>
             </form>
           </section>
+        </div>
+      )}
+      {categoryToDelete && (
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="delete-category-title" onClick={() => setCategoryToDelete(null)}>
+          <div className="modal-dialog" onClick={(event) => event.stopPropagation()}>
+            <p className="eyebrow">Confirmação de exclusão</p>
+            <h3 id="delete-category-title">Excluir «{categoryToDelete.name}»?</h3>
+            <p>
+              Esta ação é permanente. A categoria só pode ser excluída se não houver itens vinculados a ela.
+              Os itens vinculados não são excluídos automaticamente.
+            </p>
+            {message?.type === 'error' && <output className="form-message form-error" role="alert">{message.text}</output>}
+            <div className="modal-actions">
+              <button className="secondary-button" type="button" onClick={() => setCategoryToDelete(null)} disabled={Boolean(deletingId)}>Cancelar</button>
+              <button className="destructive-button destructive-button--fill" type="button" onClick={confirmDelete} disabled={Boolean(deletingId)}>
+                {deletingId ? 'Excluindo...' : 'Confirmar exclusão'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </section>
