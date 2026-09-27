@@ -107,6 +107,39 @@ and not sold produces `-300.00`, and an item bought for `300.00` and sold for
 Category responses contain a lightweight user summary (`id` and `username`) and do
 not include `balance`. The calculated balance is returned by the user endpoints.
 
+#### Get Financial Summary
+```http
+GET /users/me/financial-summary
+Authorization: ******
+```
+
+All financial values and item counts are calculated by the backend:
+
+```json
+{
+  "balance": 200.00,
+  "totalInvested": 320.00,
+  "totalPurchases": 300.00,
+  "totalExpenses": 20.00,
+  "totalSales": 500.00,
+  "totalProfit": 180.00,
+  "totalLoss": 0.00,
+  "averageMargin": 36.00,
+  "inventoryValue": 0.00,
+  "totalItems": 1,
+  "availableItems": 0,
+  "soldItems": 1
+}
+```
+
+Definitions:
+- `balance`: total sales minus all purchases and expenses.
+- `totalInvested`: purchases plus additional expenses.
+- `totalProfit`: sum of positive profits from sold items.
+- `totalLoss`: sum of absolute negative profits from sold items.
+- `averageMargin`: net profit divided by total sales, multiplied by 100.
+- `inventoryValue`: purchase prices plus expenses for available items.
+
 ---
 
 #### Get User by ID

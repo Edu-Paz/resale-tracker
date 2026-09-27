@@ -102,8 +102,6 @@ function ExpenseManager({ item, onClose, onExpensesChanged }) {
     }
   }
 
-  const total = expenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0)
-
   return (
     <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="expense-manager-title" onClick={onClose} onKeyDown={(event) => event.key === 'Escape' && onClose()}>
       <section className="dashboard-panel form-panel modal-form-panel expense-dialog" onClick={(event) => event.stopPropagation()}>
@@ -114,7 +112,6 @@ function ExpenseManager({ item, onClose, onExpensesChanged }) {
           </div>
           <button className="inline-action" type="button" onClick={onClose}>Fechar</button>
         </div>
-        <p className="expense-total">Total de gastos: <strong>{formatCurrency(total)}</strong></p>
         <form className="dashboard-form expense-form" onSubmit={handleSubmit}>
           <div className="form-grid">
             <label>Descrição<input value={name} onChange={(event) => setName(event.target.value)} placeholder="Ex.: Frete" required /></label>

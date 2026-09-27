@@ -3,6 +3,7 @@ package com.resaletracker.financialapi.services;
 import com.resaletracker.financialapi.entities.Item;
 import com.resaletracker.financialapi.entities.ItemStatus;
 import com.resaletracker.financialapi.repositories.ItemRepository;
+import com.resaletracker.financialapi.dtos.user.FinancialSummaryDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,7 +20,70 @@ public class BalanceService {
 
     @Transactional(readOnly = true)
     public BigDecimal calculateByUserId(Long userId) {
-        return itemRepository.calculateBalanceByUserId(userId);
+        return calculateFinancialSummaryByUserId(userId).getBalance();
+    }
+
+    @Transactional(readOnly = true)
+    public FinancialSummaryDTO calculateFinancialSummaryByUserId(Long userId) {
+        var items = itemRepository.findAllByCategory_UserId(userId);
+        BigDecimal totalPurchases = BigDecimal.ZERO;
+        BigDecimal totalExpenses = BigDecimal.ZERO;
+        BigDecimal totalSales = BigDecimal.ZERO;
+        BigDecimal totalProfit = BigDecimal.ZERO;
+        BigDecimal totalLoss = BigDecimal.ZERO;
+        BigDecimal inventoryValue = BigDecimal.ZERO;
+        long availableItems = 0;
+        long soldItems = 0;
+
+        for (Item item : items) {
+            BigDecimal purchase = valueOrZero(item.getBuyPrice());
+            BigDecimal expenses = item.getExpense().stream()
+                    .map(expense -> valueOrZero(expense.getAmount()))
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            totalPurchases = totalPurchases.add(purchase);
+            totalExpenses = totalExpenses.add(expenses);
+
+            if (item.getStatus() == ItemStatus.SOLD && item.getSellPrice() != null) {
+                soldItems++;
+                totalSales = totalSales.add(item.getSellPrice());
+                BigDecimal profit = item.getSellPrice().subtract(purchase).subtract(expenses);
+                if (profit.signum() >= 0) {
+                    totalProfit = totalProfit.add(profit);
+                } else {
+                    totalLoss = totalLoss.add(profit.abs());
+                }
+            } else {
+                availableItems++;
+                inventoryValue = inventoryValue.add(purchase).add(expenses);
+            }
+        }
+
+        BigDecimal balance = totalSales.subtract(totalPurchases).subtract(totalExpenses);
+        BigDecimal netProfit = totalProfit.subtract(totalLoss);
+        BigDecimal averageMargin = totalSales.signum() > 0
+                ? netProfit.divide(totalSales, 4, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100))
+                : BigDecimal.ZERO;
+
+        return new FinancialSummaryDTO(
+                balance,
+                totalPurchases.add(totalExpenses),
+                totalPurchases,
+                totalExpenses,
+                totalSales,
+                totalProfit,
+                totalLoss,
+                averageMargin,
+                inventoryValue,
+                items.size(),
+                availableItems,
+                soldItems
+        );
+    }
+
+    private BigDecimal valueOrZero(BigDecimal value) {
+        return value == null ? BigDecimal.ZERO : value;
     }
 
     public void recalculateItemMetrics(Item item) {

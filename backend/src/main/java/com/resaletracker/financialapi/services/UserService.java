@@ -1,6 +1,7 @@
 package com.resaletracker.financialapi.services;
 
 import com.resaletracker.financialapi.dtos.user.UserDTO;
+import com.resaletracker.financialapi.dtos.user.FinancialSummaryDTO;
 import com.resaletracker.financialapi.dtos.user.UserRegisterDTO;
 import com.resaletracker.financialapi.entities.User;
 import com.resaletracker.financialapi.repositories.UserRepository;
@@ -33,6 +34,13 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
         return new UserDTO(user, balanceService.calculateByUserId(id));
+    }
+
+    @Transactional(readOnly = true)
+    public FinancialSummaryDTO financialSummary(Long id) {
+        userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+        return balanceService.calculateFinancialSummaryByUserId(id);
     }
 
     @Transactional
