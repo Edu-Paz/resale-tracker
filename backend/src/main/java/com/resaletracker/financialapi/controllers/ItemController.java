@@ -28,6 +28,14 @@ public class ItemController {
         return ResponseEntity.ok(items);
     }
 
+    @GetMapping("/category/{categoryId}")
+    public ResponseEntity<List<ItemDTO>> findAllItemsByCategory(
+            @PathVariable Long categoryId
+    ) {
+        List<ItemDTO> items = itemService.findAllItemsByCategory(categoryId);
+        return ResponseEntity.ok(items);
+    }
+
     @PostMapping
     public ResponseEntity<ItemDTO> createItem(@RequestBody @Valid ItemInsertDTO itemInsertDTO) {
         ItemDTO itemDTO = itemService.createItem(itemInsertDTO);

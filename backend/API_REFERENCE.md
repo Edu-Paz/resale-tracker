@@ -348,6 +348,43 @@ Authorization: Bearer <token>
 
 ---
 
+#### Get All Items by Category
+```http
+GET /items/category/{categoryId}
+Authorization: ******
+```
+
+Returns only the items belonging to the requested category. The category must
+belong to the authenticated user; otherwise the API returns `404 Not Found`.
+
+**Response (200):**
+```json
+[
+  {
+    "id": 1,
+    "name": "iPhone 13",
+    "imgUrl": "https://example.com/iphone13.jpg",
+    "status": "AVAILABLE",
+    "buyPrice": 500.00,
+    "buyDate": "2024-01-15",
+    "sellPrice": null,
+    "sellDate": null,
+    "profit": null,
+    "margin": null,
+    "category": {
+      "id": 1,
+      "name": "Electronics",
+      "user": {
+        "id": 1,
+        "username": "john_doe"
+      }
+    }
+  }
+]
+```
+
+---
+
 #### Get Item by ID
 ```http
 GET /items/{itemId}

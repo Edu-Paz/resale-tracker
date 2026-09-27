@@ -50,6 +50,23 @@ public class ItemService {
         return items.stream().map(ItemDTO::new).toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<ItemDTO> findAllItemsByCategory(Long categoryId) {
+        User user = authService.getAuthenticatedUser();
+        categoryRepository.findByIdAndUserId(categoryId, user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        CATEGORY_NOT_FOUND_MESSAGE + categoryId
+                                + NOT_FOUND_FOR_USER + user.getId()
+                ));
+
+        return itemRepository.findAllByCategory_UserIdAndCategoryId(
+                        user.getId(), categoryId
+                )
+                .stream()
+                .map(ItemDTO::new)
+                .toList();
+    }
+
     @Transactional
     public ItemDTO createItem(ItemInsertDTO itemInsertDTO) {
         User user = authService.getAuthenticatedUser();
