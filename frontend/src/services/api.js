@@ -33,6 +33,8 @@ export function getCategories(token) { return authorized(token, '/categories') }
 export function createItem(token, item) { return authorized(token, '/items', { method: 'POST', body: JSON.stringify(item) }) }
 export function updateItem(token, itemId, item) { return authorized(token, `/items/${itemId}`, { method: 'PUT', body: JSON.stringify(item) }) }
 export function createCategory(token, category) { return authorized(token, '/categories', { method: 'POST', body: JSON.stringify(category) }) }
+export function updateCategory(token, categoryId, category) { return authorized(token, `/categories/${categoryId}`, { method: 'PUT', body: JSON.stringify(category) }) }
+export function deleteCategory(token, categoryId) { return authorized(token, `/categories/${categoryId}`, { method: 'DELETE' }) }
 export function sellItem(token, itemId, sellData) { return authorized(token, `/items/${itemId}/sell`, { method: 'PATCH', body: JSON.stringify(sellData) }) }
 export function deleteItem(token, itemId) { return authorized(token, `/items/${itemId}`, { method: 'DELETE' }) }
 export function getExpensesByItem(token, itemId) { return authorized(token, `/expense/item/${itemId}`) }
