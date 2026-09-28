@@ -2,8 +2,7 @@
 
 Aplicação full-stack para gestão financeira de revendedores de itens usados. O
 sistema permite cadastrar produtos, organizá-los por categorias, registrar vendas
-e despesas adicionais e acompanhar saldo, investimento, lucro, prejuízo, margem e
-valor em estoque.
+e despesas adicionais e acompanhar saldo, lucro, prejuízo e margem.
 
 O repositório contém uma API REST em Spring Boot e uma aplicação web SPA em
 React/Vite. O frontend consome a API para autenticação e para todo o gerenciamento
