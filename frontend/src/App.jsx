@@ -47,12 +47,12 @@ function App() {
       }} />}
       {route === 'register' && <AuthPage type="register" onNavigate={navigate} />}
       {route === 'home' && (isAuthenticated
-        ? <UserPage onNavigate={navigate} />
+        ? <UserPage onNavigate={navigate} onLogout={handleLogout} />
         : <HomePage onNavigate={navigate} />)}
-      {route === 'user' && <UserPage onNavigate={navigate} />}
-      {route === 'items' && <UserPage onNavigate={navigate} initialTab="items" />}
-      {route === 'categories' && <UserPage onNavigate={navigate} initialTab="categories" />}
-      {route === 'new-item' && <UserPage onNavigate={navigate} initialTab="item" />}
+      {route === 'user' && <UserPage onNavigate={navigate} onLogout={handleLogout} />}
+      {route === 'items' && <UserPage onNavigate={navigate} onLogout={handleLogout} initialTab="items" />}
+      {route === 'categories' && <UserPage onNavigate={navigate} onLogout={handleLogout} initialTab="categories" />}
+      {route === 'new-item' && <UserPage onNavigate={navigate} onLogout={handleLogout} initialTab="item" />}
     </>
   )
 }

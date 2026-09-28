@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useState} from 'react'
 import {ApiError, deleteItem, getCategories, getCurrentUser, getExpensesByItem, getFinancialSummary, getItems, sellItem, updateItem} from '../services/api'
-import {clearToken, getToken} from '../services/session'
+import {getToken} from '../services/session'
 import {routes} from '../routes/appRoutes'
 import CategoryForm from '../components/CategoryForm'
 import ItemForm from '../components/ItemForm'
@@ -492,7 +492,7 @@ function OverviewTab({
     )
 }
 
-function UserPage({onNavigate, initialTab = 'overview'}) {
+function UserPage({onNavigate, onLogout, initialTab = 'overview'}) {
     const [user, setUser] = useState(null)
     const [items, setItems] = useState([])
     const [categories, setCategories] = useState([])
@@ -555,17 +555,15 @@ function UserPage({onNavigate, initialTab = 'overview'}) {
             })
             .catch((error) => {
                 if (error instanceof ApiError && (error.status === 401 || error.status === 403)) {
-                    clearToken()
-                    onNavigate(routes.login)
+                    onLogout()
                     return
                 }
                 setErrorMessage('Não foi possível carregar seus dados. Tente novamente.')
             })
-    }, [onNavigate])
+    }, [onNavigate, onLogout])
 
     function handleLogout() {
-        clearToken()
-        onNavigate(routes.login)
+        onLogout()
     }
 
     function handleDeleteItem(item) {
