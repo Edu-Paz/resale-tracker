@@ -1,134 +1,114 @@
 # Resale Tracker
 
-Resale Tracker is a full-stack application for organizing resale operations. It is designed to help resellers register products, group them into categories, record purchases and sales, and track financial results such as profit, margin, and balance.
+Aplicação full-stack para gestão financeira de revendedores de itens usados. O
+sistema permite cadastrar produtos, organizá-los por categorias, registrar vendas
+e despesas adicionais e acompanhar saldo, investimento, lucro, prejuízo, margem e
+valor em estoque.
 
-The repository contains a Spring Boot REST API and a React/Vite frontend. The backend already defines the main business API, while the frontend currently provides the public landing page and authentication screens that will consume that API.
+O repositório contém uma API REST em Spring Boot e uma aplicação web SPA em
+React/Vite. O frontend consome a API para autenticação e para todo o gerenciamento
+de inventário e resultados financeiros.
 
-## Project Status
+## Funcionalidades
 
-- Backend: REST API with authentication, user, category, and item operations.
-- Frontend: React interface with home, login, and registration views.
-- Integration: The frontend authentication forms are currently visual and do not submit requests to the backend yet.
-- Database: H2 in-memory database is the default development configuration.
-- Production setup: PostgreSQL is included as a backend runtime dependency, but production database configuration must be provided separately.
+- Cadastro e login de usuários com autenticação JWT.
+- Isolamento dos dados por usuário.
+- CRUD de categorias.
+- CRUD de itens com imagem opcional, preço e data de compra.
+- Filtro de itens por categoria, status e nome.
+- Registro de venda com cálculo de custo total, lucro/prejuízo e margem.
+- CRUD de despesas adicionais vinculadas a um item.
+- Dashboard com resumo financeiro calculado pelo backend.
+- Validação de dados e regras de negócio com respostas de erro padronizadas.
+- Console H2 para desenvolvimento local.
 
-## Main Features
-
-### Backend
-
-- User registration and login
-- JWT-based authentication
-- User profile lookup and account deletion
-- Category CRUD operations
-- Inventory item CRUD operations
-- Item filtering by category
-- Item sale workflow
-- Automatic profit and margin calculation
-- User balance updates after a sale
-- Request validation with Jakarta Validation
-- Global error response format
-- H2 Console for local development
-
-### Frontend
-
-- Product landing page
-- Responsive layout for desktop and mobile screens
-- Login view
-- Registration view
-- Shared header, footer, and authentication form components
-- Client-side navigation for `/`, `/login`, and `/cadastro`
-- IBM Plex Serif, IBM Plex Sans, and IBM Plex Mono typography
-
-## Architecture
+## Arquitetura
 
 ```text
-+-------------------+        HTTP/JSON         +-------------------------+
-| React + Vite      |  --------------------->  | Spring Boot REST API    |
-| frontend          |                           | backend                 |
-| localhost:5173    |  <---------------------  | localhost:8080          |
-+-------------------+                           +------------+------------+
-                                                           |
-                                                           v
-                                                +-------------------------+
-                                                | H2 in-memory database   |
-                                                | PostgreSQL-ready         |
-                                                +-------------------------+
++------------------------+       HTTP/JSON        +-------------------------+
+| React 19 + Vite        |  -------------------->  | Spring Boot REST API    |
+| frontend               |  <--------------------  | backend                 |
+| localhost:5173         |                         | localhost:8080          |
++------------------------+                         +------------+------------+
+                                                               |
+                                                               v
+                                                    +-------------------------+
+                                                    | H2 (desenvolvimento)    |
+                                                    | PostgreSQL (produção)   |
+                                                    +-------------------------+
 ```
 
-The frontend is a Vite-powered single-page application. The backend exposes REST endpoints and applies authentication and authorization rules before accessing the persistence layer through Spring Data JPA.
+O frontend é uma SPA com roteamento baseado na History API, componentes
+funcionais e React Hooks. A API usa arquitetura em camadas: controllers, DTOs,
+services, repositories e entidades JPA. O backend é a fonte de verdade para
+todos os valores financeiros; o frontend apenas exibe os valores retornados.
 
-## Technology Stack
+## Stack tecnológico
 
 ### Frontend
 
-- React 19
-- React DOM 19
-- Vite 8
-- JavaScript and JSX
-- CSS custom properties and responsive CSS
-- ESLint 10
-- React Hooks and React Refresh ESLint plugins
+- React 19.2.8 e React DOM 19.2.8.
+- Vite 8.2.0 e `@vitejs/plugin-react` 6.0.4.
+- JavaScript/JSX com ES Modules.
+- ESLint 10.8.0, `eslint-plugin-react-hooks` e
+  `eslint-plugin-react-refresh`.
+- CSS responsivo e fontes IBM Plex Serif, IBM Plex Sans e IBM Plex Mono.
+- Estado local com React Hooks e sessão persistida em `localStorage`.
 
 ### Backend
 
-- Java 21
-- Spring Boot 4.1.0
-- Spring Web
-- Spring Data JPA
-- Spring Security
-- Jakarta Validation
-- H2 Database for development
-- PostgreSQL JDBC driver
-- JJWT 0.11.5
-- Lombok
-- Maven Wrapper
+- Java 25.
+- Spring Boot 4.1.0, Spring Web, Spring Security e Spring Data JPA.
+- Hibernate, Jakarta Validation e Lombok.
+- JWT com JJWT 0.11.5 e senhas protegidas com BCrypt.
+- H2 em memória para desenvolvimento e testes.
+- Driver PostgreSQL disponível para configuração de produção.
+- Maven Wrapper para build e execução.
 
-## Requirements
+## Pré-requisitos
 
-Install the following tools before starting development:
+- Git.
+- Node.js 18 ou superior e npm 9 ou superior.
+- JDK 25 ou superior.
+- Maven não precisa ser instalado globalmente: use o Maven Wrapper incluído em
+  `backend/`.
+- PostgreSQL é opcional para desenvolvimento e necessário apenas se a aplicação
+  for configurada para esse banco em produção.
 
-- Node.js 18 or newer
-- npm 9 or newer
-- Java Development Kit 21
-- Git
+Docker não é necessário para a configuração padrão.
 
-Maven does not need to be installed globally because the backend includes the Maven Wrapper. Docker is not required for the default H2 setup.
+## Instalação e execução
 
-## Getting Started
-
-### 1. Clone the repository
+### 1. Clonar o repositório
 
 ```bash
 git clone git@github.com:Edu-Paz/resale-tracker.git
 cd resale-tracker
 ```
-### 2. Start the backend
 
-Open a terminal in the backend directory:
+### 2. Iniciar o backend
+
+Em um terminal:
 
 ```bash
 cd backend
 ./mvnw spring-boot:run
 ```
 
-On Windows, use:
+No Windows:
 
 ```powershell
 cd backend
 mvnw.cmd spring-boot:run
 ```
 
-The API will be available at:
+A API ficará disponível em `http://localhost:8080`. A configuração padrão usa
+H2 em memória; as tabelas e os dados de `src/main/resources/import.sql` são
+recriados a cada inicialização.
 
-```text
-http://localhost:8080
-```
+### 3. Iniciar o frontend
 
-The default setup uses an in-memory H2 database. The database is recreated when the application starts and sample data can be loaded from `backend/src/main/resources/import.sql`.
-
-### 3. Start the frontend
-
-Open another terminal in the repository root:
+Em outro terminal, a partir da raiz do repositório:
 
 ```bash
 cd frontend
@@ -136,214 +116,245 @@ npm install
 npm run dev
 ```
 
-The frontend will usually be available at:
+A aplicação ficará disponível normalmente em `http://localhost:5173`. Para o
+fluxo completo, mantenha frontend e backend executando simultaneamente.
 
-```text
-http://localhost:5173
-```
+## Comandos disponíveis
 
-The frontend and backend must run at the same time when testing the complete application flow.
+Execute os comandos do frontend em `frontend/` e os do backend em `backend/`.
 
-## Available Commands
+| Projeto | Comando | Descrição |
+| --- | --- | --- |
+| Frontend | `npm run dev` | Inicia o Vite com hot reload. |
+| Frontend | `npm run build` | Gera o build de produção em `dist/`. |
+| Frontend | `npm run preview` | Serve localmente o build gerado. |
+| Frontend | `npm run lint` | Executa o ESLint. |
+| Backend | `./mvnw spring-boot:run` | Inicia a API Spring Boot. |
+| Backend | `./mvnw test` | Executa os testes. |
+| Backend | `./mvnw clean package` | Testa, compila e gera o JAR. |
+| Backend | `./mvnw clean install` | Gera e instala o artefato localmente. |
+
+No Windows, substitua `./mvnw` por `mvnw.cmd`.
+
+## Configuração
 
 ### Frontend
 
-Run these commands from `frontend/`:
+O cliente HTTP usa `http://localhost:8080` por padrão. Para apontar para outra
+API, crie `frontend/.env`:
 
-| Command | Description |
-| --- | --- |
-| `npm run dev` | Starts the Vite development server with hot reload. |
-| `npm run build` | Generates the production bundle in `frontend/dist/`. |
-| `npm run preview` | Serves the generated production bundle locally. |
-| `npm run lint` | Runs ESLint against the frontend source. |
+```dotenv
+VITE_API_URL=http://localhost:8080
+```
 
-### Backend
+As rotas principais são:
 
-Run these commands from `backend/`:
+| Rota | Acesso | Descrição |
+| --- | --- | --- |
+| `/` | Público | Landing page. |
+| `/login` | Público | Login. |
+| `/cadastro` | Público | Cadastro. |
+| `/usuario` | Autenticado | Visão geral e métricas financeiras. |
+| `/itens` | Autenticado | Lista, busca e filtros de itens. |
+| `/itens/novo` | Autenticado | Cadastro de item. |
+| `/categorias` | Autenticado | Gerenciamento de categorias. |
 
-| Command | Description |
-| --- | --- |
-| `./mvnw spring-boot:run` | Starts the Spring Boot API. |
-| `./mvnw test` | Runs the backend test suite. |
-| `./mvnw clean package` | Compiles, tests, and packages the backend. |
-| `./mvnw clean install` | Builds and installs the backend artifact locally. |
+O token JWT é armazenado em `localStorage` na chave
+`resale-tracker-token`. As requisições protegidas enviam
+`Authorization: Bearer <token>`.
 
-On Windows, replace `./mvnw` with `mvnw.cmd`.
+### Backend e H2
 
-## Backend Configuration
-
-The default configuration is stored in `backend/src/main/resources/application.properties`:
+O arquivo de configuração é
+`backend/src/main/resources/application.properties`:
 
 ```properties
 spring.datasource.url=jdbc:h2:mem:testdb
+spring.datasource.driverClassName=org.h2.Driver
 spring.datasource.username=sa
 spring.datasource.password=
-spring.jpa.hibernate.ddl-auto=create-drop
 spring.h2.console.enabled=true
 spring.h2.console.path=/h2-console
+spring.jpa.hibernate.ddl-auto=create-drop
+spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
+spring.sql.init.mode=always
+spring.jpa.defer-datasource-initialization=true
 api.jwt.expiration=86400000
 ```
 
-### Default Development Database
+O console H2 pode ser acessado em `http://localhost:8080/h2-console` usando:
 
-- JDBC URL: `jdbc:h2:mem:testdb`
-- Username: `sa`
-- Password: empty
-- Console: `http://localhost:8080/h2-console`
-- Schema lifecycle: recreated on application startup
+| Campo | Valor |
+| --- | --- |
+| JDBC URL | `jdbc:h2:mem:testdb` |
+| Driver | `org.h2.Driver` |
+| Usuário | `sa` |
+| Senha | em branco |
 
-The current JWT secret is present in the development properties file for local use. It must be replaced with a secret supplied through a secure environment-specific configuration before deploying the backend.
+Os dados são temporários e desaparecem quando a aplicação é reiniciada.
+O endpoint local usa HTTP, não HTTPS: utilize `http://localhost:8080`.
 
-### PostgreSQL
+### PostgreSQL e JWT em produção
 
-The PostgreSQL driver is included in `backend/pom.xml`, but this repository does not currently provide a separate production properties profile. To use PostgreSQL, provide environment-specific Spring datasource properties, for example:
+O driver PostgreSQL já está incluído no backend, mas a configuração de produção
+deve ser fornecida pelo ambiente. Exemplo:
 
 ```properties
 spring.datasource.url=jdbc:postgresql://localhost:5432/resale_tracker
-spring.datasource.username=your_username
-spring.datasource.password=your_password
+spring.datasource.driverClassName=org.postgresql.Driver
+spring.datasource.username=seu_usuario
+spring.datasource.password=sua_senha
 spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.hibernate.ddl-auto=update
+api.jwt.secret=uma-chave-longa-e-segura-fornecida-pelo-ambiente
+api.jwt.expiration=86400000
 ```
 
-Do not commit production credentials or JWT secrets.
+Não versionar credenciais, chaves JWT ou arquivos `.env`. A chave presente na
+configuração de desenvolvimento deve ser substituída antes de qualquer deploy.
 
-## API Overview
+O CORS está preparado para `http://localhost:3000`,
+`http://localhost:4200` e `http://localhost:5173`. Para adicionar uma origem,
+altere `backend/src/main/java/com/resaletracker/financialapi/config/WebConfig.java`.
 
-Base URL:
+## API REST
 
-```text
-http://localhost:8080
-```
+**Base URL:** `http://localhost:8080`
 
-### Authentication
-
-| Method | Endpoint | Access | Purpose |
-| --- | --- | --- | --- |
-| `POST` | `/users/register` | Public | Creates a user account. |
-| `POST` | `/auth/login` | Public | Authenticates a user and returns a JWT. |
-
-### Users
-
-| Method | Endpoint | Access | Purpose |
-| --- | --- | --- | --- |
-| `GET` | `/users/me` | Authenticated | Returns the current user's details. |
-| `GET` | `/users/{id}` | Authenticated | Returns the authenticated user's own data. |
-| `DELETE` | `/users/{id}` | Authenticated | Deletes the authenticated user's account. |
-
-### Categories
-
-| Method | Endpoint | Access | Purpose |
-| --- | --- | --- | --- |
-| `POST` | `/categories` | Authenticated | Creates a category. |
-| `GET` | `/categories` | Authenticated | Lists the user's categories. |
-| `PUT` | `/categories/{id}` | Authenticated | Updates a category. |
-| `DELETE` | `/categories/{id}` | Authenticated | Deletes a category. |
-
-### Items
-
-| Method | Endpoint | Access | Purpose |
-| --- | --- | --- | --- |
-| `POST` | `/items` | Authenticated | Adds an inventory item. |
-| `GET` | `/items` | Authenticated | Lists the user's items. |
-| `GET` | `/items/{itemId}` | Authenticated | Returns one item. |
-| `PUT` | `/items/{itemId}` | Authenticated | Updates an item. |
-| `PATCH` | `/items/{itemId}/sell` | Authenticated | Marks an item as sold and calculates results. |
-| `DELETE` | `/items/{itemId}` | Authenticated | Deletes an item. |
-
-Send JWT-protected requests with:
+Exceto login e cadastro, todos os endpoints exigem:
 
 ```http
-Authorization: Bearer <your-jwt-token>
+Authorization: Bearer <jwt>
 ```
 
-The complete request and response examples are available in [frontend/API_REFERENCE.md](frontend/API_REFERENCE.md).
+### Autenticação e usuários
 
-## Business Rules
+| Método | Endpoint | Descrição |
+| --- | --- | --- |
+| `POST` | `/users/register` | Cria usuário (`username`, `password`, `passwordConfirmation`). |
+| `POST` | `/auth/login` | Autentica e retorna um JWT. |
+| `GET` | `/users/me` | Retorna o usuário autenticado e seu saldo. |
+| `GET` | `/users/me/financial-summary` | Retorna o resumo financeiro completo. |
+| `GET` | `/users/{id}` | Consulta o próprio usuário. |
+| `DELETE` | `/users/{id}` | Exclui a própria conta. |
 
-- New items start with the `AVAILABLE` status.
-- Selling an item changes its status to `SOLD`.
-- Profit is calculated as `sellPrice - buyPrice`.
-- Margin is calculated as `(profit / buyPrice) * 100`.
-- The user's balance is updated with the calculated profit after a sale.
-- Users can only access their own profile, categories, and items.
-- Monetary values use decimal precision.
-- Dates use ISO 8601 format, such as `2024-01-15`.
-- JWT tokens expire after 24 hours in the current development configuration.
+### Categorias
 
-## Security
+| Método | Endpoint | Descrição |
+| --- | --- | --- |
+| `POST` | `/categories` | Cria uma categoria. |
+| `GET` | `/categories` | Lista as categorias do usuário. |
+| `PUT` | `/categories/{id}` | Atualiza uma categoria. |
+| `DELETE` | `/categories/{id}` | Exclui uma categoria vazia. |
 
-- Login and registration endpoints are publicly accessible.
-- Other API endpoints require a valid JWT.
-- Passwords are hashed with BCrypt by the backend.
-- User-owned resources are protected by ownership checks.
-- Development secrets must not be reused in production.
-- H2 Console access is intended for local development only.
+### Itens
 
-## Repository Structure
+| Método | Endpoint | Descrição |
+| --- | --- | --- |
+| `POST` | `/items` | Cadastra um item. |
+| `GET` | `/items` | Lista itens; aceita `?categoryId={id}`. |
+| `GET` | `/items/category/{categoryId}` | Lista itens de uma categoria. |
+| `GET` | `/items/{itemId}` | Consulta um item. |
+| `PUT` | `/items/{itemId}` | Atualiza um item. |
+| `PATCH` | `/items/{itemId}/sell` | Registra a venda de um item disponível. |
+| `DELETE` | `/items/{itemId}` | Exclui um item não vendido. |
+
+### Despesas
+
+Cada despesa pertence a exatamente um item e não pode ser transferida para outro
+item.
+
+| Método | Endpoint | Descrição |
+| --- | --- | --- |
+| `POST` | `/expense` | Cria uma despesa (`name`, `amount`, `itemId`). |
+| `GET` | `/expense/{expenseId}` | Consulta uma despesa. |
+| `GET` | `/expense/item/{itemId}` | Lista despesas de um item. |
+| `PATCH` | `/expense/{expenseId}` | Atualiza nome e valor. |
+| `DELETE` | `/expense/{expenseId}` | Exclui uma despesa. |
+
+Respostas de validação e regras de negócio usam, conforme o caso, `400`,
+`403`, `404` ou `422`. O backend aplica as verificações de propriedade em todas
+as operações.
+
+Para exemplos completos de requests, responses e DTOs, consulte
+[frontend/API_REFERENCE.md](frontend/API_REFERENCE.md).
+
+## Regras e cálculos financeiros
+
+- Todo item começa com status `AVAILABLE`; uma venda altera o status para `SOLD`.
+- O custo total é `buyPrice + despesas adicionais`.
+- Lucro/prejuízo é `sellPrice - custo total`.
+- Margem é `(lucro / sellPrice) * 100`.
+- Saldo é `totalSales - totalPurchases - totalExpenses` e pode ser negativo.
+- O valor em estoque soma compras e despesas dos itens disponíveis.
+- O resumo informa investimento, compras, despesas, vendas, lucro, prejuízo,
+  margem média e contagens de itens.
+- Datas não podem ser futuras; a data de venda não pode ser anterior à compra.
+- Preços e valores de despesas devem ser positivos.
+- Categorias não podem ser duplicadas para o mesmo usuário e só podem ser
+  excluídas quando não possuem itens.
+- Itens vendidos não podem ser excluídos.
+- Alterar despesas de um item vendido recalcula lucro, margem e resumo financeiro.
+- O frontend não recalcula valores financeiros: sempre exibe os dados da API.
+
+## Segurança
+
+- JWT stateless com expiração padrão de 24 horas.
+- Senhas armazenadas com BCrypt.
+- Endpoints de login e registro são públicos; os demais exigem JWT.
+- Usuários só acessam seus próprios usuários, categorias, itens e despesas.
+- CORS configurado explicitamente para origens de desenvolvimento.
+- H2 Console destinado somente ao desenvolvimento local.
+
+## Estrutura do repositório
 
 ```text
 resale-tracker/
 ├── backend/
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/com/resaletracker/
-│   │   │   └── resources/
-│   │   │       ├── application.properties
-│   │   │       └── import.sql
-│   │   ├── test/
-│   │   └── ...
+│   ├── src/main/java/com/resaletracker/financialapi/
+│   │   ├── config/          # Segurança, JWT e CORS
+│   │   ├── controllers/     # Endpoints REST e exceções
+│   │   ├── dtos/            # Contratos de entrada e saída
+│   │   ├── entities/        # Entidades JPA
+│   │   ├── repositories/    # Acesso a dados
+│   │   └── services/        # Regras de negócio
+│   ├── src/main/resources/  # application.properties e import.sql
 │   ├── pom.xml
 │   ├── mvnw
 │   └── README.md
 ├── frontend/
 │   ├── public/
 │   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── App.jsx
-│   │   ├── routes.js
-│   │   └── main.jsx
+│   │   ├── components/      # Componentes reutilizáveis
+│   │   ├── pages/           # Landing, autenticação e dashboard
+│   │   ├── routes/          # Rotas da SPA
+│   │   ├── services/        # API e sessão
+│   │   └── styles/          # Estilos base, componentes e páginas
 │   ├── package.json
-│   ├── vite.config.js
 │   ├── API_REFERENCE.md
 │   └── README.md
 └── README.md
 ```
 
-## Frontend Routes
-
-| Path | View | Current behavior |
-| --- | --- | --- |
-| `/` | Home | Displays the product introduction and feature overview. |
-| `/login` | Login | Displays the login form. |
-| `/cadastro` | Registration | Displays the registration form. |
-
-Routing is currently implemented in `frontend/src/routes.js` with the browser History API. Unknown paths fall back to the home view.
-
-## Validation Checklist
-
-Run both frontend checks:
+## Verificação local
 
 ```bash
 cd frontend
 npm run lint
 npm run build
-```
 
-Run backend checks:
-
-```bash
-cd backend
+cd ../backend
 ./mvnw test
 ./mvnw clean package
 ```
 
-## Documentation
+## Documentação adicional
 
-- [Frontend README](frontend/README.md)
-- [Backend README](backend/README.md)
-- [API Reference](frontend/API_REFERENCE.md)
+- [README do frontend](frontend/README.md)
+- [README do backend](backend/README.md)
+- [Referência da API](frontend/API_REFERENCE.md)
+- [Design system do frontend](frontend/DESIGN.md)
 
-## License
+## Licença
 
-This project is part of the Resale Tracker system.
+Este projeto faz parte do sistema Resale Tracker.
