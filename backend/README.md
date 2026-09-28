@@ -1,5 +1,11 @@
 # Financial API - Resale Tracker Backend
 
+Base URL em desenvolvimento: `http://localhost:8080`
+
+> A API local está configurada para HTTP, não HTTPS. Use `http://localhost:8080`; uma
+> requisição `https://localhost:8080` gera o erro `Invalid character found in method name`
+> porque o Tomcat recebe um handshake TLS em uma porta HTTP.
+
 ## Visão Geral
 
 A Financial API é uma aplicação RESTful desenvolvida com Spring Boot para gerenciamento de revenda de produtos. O sistema permite que usuários cadastrem itens, organizem-nos em categorias, registrem compras e vendas, e acompanhem métricas financeiras como lucro e margem de lucro. A aplicação foi projetada seguindo princípios de arquitetura limpa, com separação clara de responsabilidades entre camadas.
@@ -49,7 +55,7 @@ A aplicação segue uma arquitetura em camadas (Layered Architecture), com separ
    - Implementação de regras de negócio
    - Orquestração de operações entre entidades
    - Validações de integridade de dados
-   - Cálculos financeiros (lucro, margem)
+   - Cálculos financeiros (saldo, custo total, lucro, prejuízo e margem)
    - Gerenciamento de transações
 
 3. **Camada de Repositórios (Data Access Layer)**
@@ -78,24 +84,21 @@ com.resaletracker.financialapi/
 ├── controllers/               # Controladores REST
 │   ├── AuthenticationController.java
 │   ├── CategoryController.java
+│   ├── ExpenseController.java
 │   ├── ItemController.java
 │   ├── UserController.java
 │   └── exceptions/           # Tratamento global de exceções
 │       ├── ResourceExceptionHandler.java
 │       └── StandardError.java
-├── dtos/                      # Data Transfer Objects
-│   ├── CategoryDTO.java
-│   ├── CategoryInsertDTO.java
-│   ├── ItemDTO.java
-│   ├── ItemInsertDTO.java
-│   ├── ItemSellDTO.java
-│   ├── ItemUpdateDTO.java
-│   ├── LoginRequestDTO.java
-│   ├── LoginResponseDTO.java
-│   ├── UserDTO.java
-│   └── UserRegisterDTO.java
+├── dtos/                      # DTOs organizados por domínio
+│   ├── auth/
+│   ├── category/
+│   ├── expense/
+│   ├── item/
+│   └── user/
 ├── entities/                  # Entidades JPA
 │   ├── Category.java
+│   ├── Expense.java
 │   ├── Item.java
 │   ├── ItemStatus.java       # Enum
 │   └── User.java
@@ -107,6 +110,8 @@ com.resaletracker.financialapi/
 │   ├── AuthService.java
 │   ├── CategoryService.java
 │   ├── CustomUserDetailsService.java
+│   ├── BalanceService.java
+│   ├── ExpenseService.java
 │   ├── ItemService.java
 │   ├── TokenService.java
 │   ├── UserService.java
@@ -130,7 +135,7 @@ com.resaletracker.financialapi/
 ### Gerenciamento de Usuários
 - Cadastro de usuários com validação de dados
 - Visualização de perfil próprio
-- Consulta de saldo
+- Consulta de saldo calculado e resumo financeiro
 - Exclusão de conta própria
 - Isolamento de dados entre usuários
 
@@ -145,16 +150,29 @@ com.resaletracker.financialapi/
 - Cadastro de itens com informações de compra
 - Associação de itens a categorias
 - Listagem de itens com filtro por categoria
+- Listagem de itens por categoria
 - Atualização de informações de itens
 - Exclusão de itens (apenas se não vendidos)
 - Registro de venda de itens
 - Cálculo automático de lucro e margem
 
+### Gerenciamento de Despesas
+- Cadastro de múltiplas despesas adicionais para cada item
+- Cada despesa pertence a exatamente um item
+- Consulta por identificador ou por item
+- Atualização do nome e valor sem alterar o item associado
+- Exclusão protegida pelo usuário proprietário do item
+- Recálculo automático de lucro, margem e resumo financeiro após criar, editar ou excluir
+
 ### Cálculos Financeiros
-- **Lucro**: Calculado como `preçoVenda - preçoCompra`
-- **Margem**: Calculada como `(lucro / preçoCompra) * 100`
+- **Custo total**: `preçoCompra + despesas adicionais`
+- **Lucro/prejuízo**: `preçoVenda - custo total`
+- **Margem**: `(lucro / preçoVenda) * 100`
+- **Saldo**: `vendas - compras - despesas`
+- **Valor em estoque**: compras e despesas dos itens ainda disponíveis
+- Resumo financeiro com totais de investimento, vendas, lucro, prejuízo, margem e estoque
 - Arredondamento para 4 casas decimais
-- Atualização automática ao marcar item como vendido
+- Atualização automática ao vender o item ou alterar suas despesas
 
 ### Validação e Tratamento de Erros
 - Validação de dados de entrada com Jakarta Validation
@@ -360,6 +378,9 @@ Authorization: Bearer <seu-token-jwt>
 }
 ```
 
+O saldo retornado é calculado pelo backend; não é enviado no cadastro nem persistido
+como um campo editável do usuário.
+
 **Erros**:
 - `400 Bad Request`: Validação falhou
 - `422 Unprocessable Entity`: Senhas não conferem ou username já existe
@@ -402,6 +423,44 @@ Authorization: Bearer <seu-token-jwt>
   "balance": 1500.00
 }
 ```
+
+O saldo é calculado como `totalSales - totalPurchases - totalExpenses` e pode ser
+negativo. Usuários sem itens possuem saldo `0.00`.
+
+#### Obter Resumo Financeiro
+**Endpoint**: `GET /users/me/financial-summary`
+**Descrição**: Retorna as métricas financeiras calculadas para o usuário autenticado
+**Autenticação**: Requer token JWT
+
+**Response**: `200 OK`
+```json
+{
+  "balance": 200.00,
+  "totalInvested": 320.00,
+  "totalPurchases": 300.00,
+  "totalExpenses": 20.00,
+  "totalSales": 500.00,
+  "totalProfit": 180.00,
+  "totalLoss": 0.00,
+  "averageMargin": 36.00,
+  "inventoryValue": 0.00,
+  "totalItems": 1,
+  "availableItems": 0,
+  "soldItems": 1
+}
+```
+
+**Definição das métricas**:
+- `balance`: vendas menos todas as compras e despesas
+- `totalInvested`: compras mais despesas adicionais
+- `totalPurchases`: soma dos preços de compra
+- `totalExpenses`: soma das despesas adicionais
+- `totalSales`: soma dos preços de venda
+- `totalProfit`: soma dos lucros positivos de itens vendidos
+- `totalLoss`: soma absoluta dos prejuízos de itens vendidos
+- `averageMargin`: lucro líquido dividido pelas vendas, multiplicado por 100
+- `inventoryValue`: compras e despesas dos itens disponíveis
+- `totalItems`, `availableItems` e `soldItems`: contagens por status
 
 **Erros**:
 - `403 Forbidden`: Usuário não autenticado
@@ -616,6 +675,36 @@ Authorization: Bearer <seu-token-jwt>
 ]
 ```
 
+#### Listar Itens por Categoria
+**Endpoint**: `GET /items/category/{categoryId}`
+**Descrição**: Retorna os itens pertencentes à categoria informada
+**Autenticação**: Requer token JWT
+**Restrição**: A categoria deve pertencer ao usuário autenticado
+
+**Response**: `200 OK`
+```json
+[
+  {
+    "id": 1,
+    "name": "iPhone 13",
+    "status": "AVAILABLE",
+    "buyPrice": 500.00,
+    "buyDate": "2024-01-15",
+    "sellPrice": null,
+    "sellDate": null,
+    "profit": null,
+    "margin": null,
+    "category": {
+      "id": 1,
+      "name": "Eletrônicos"
+    }
+  }
+]
+```
+
+**Erros**:
+- `404 Not Found`: Categoria não encontrada ou não pertence ao usuário
+
 #### Obter Item por ID
 **Endpoint**: `GET /items/{itemId}`
 **Descrição**: Retorna detalhes de um item específico
@@ -730,8 +819,9 @@ Authorization: Bearer <seu-token-jwt>
 ```
 
 **Cálculos Realizados**:
-- **Lucro**: `sellPrice - buyPrice` = 700.00 - 500.00 = 200.00
-- **Margem**: `(profit / sellPrice) * 100` = (200.00 / 700.00) * 100 = 28.57%
+- **Custo total**: `buyPrice + despesas` = 500.00 + 25.00 = 525.00
+- **Lucro**: `sellPrice - custo total` = 700.00 - 525.00 = 175.00
+- **Margem**: `(profit / sellPrice) * 100` = (175.00 / 700.00) * 100 = 25.00%
 
 **Erros**:
 - `404 Not Found`: Item não encontrado para o usuário
@@ -749,6 +839,70 @@ Authorization: Bearer <seu-token-jwt>
 - `404 Not Found`: Item não encontrado para o usuário
 - `422 Unprocessable Entity`: Item já foi vendido e não pode ser deletado
 
+### Despesas
+
+Uma despesa adicional pertence a exatamente um item. O item associado não pode ser
+alterado pelo endpoint de atualização. Todas as operações validam a propriedade do
+item pelo usuário autenticado.
+
+#### Criar Despesa
+**Endpoint**: `POST /expense`
+**Autenticação**: Requer token JWT
+
+**Request Body**:
+```json
+{
+  "name": "Frete",
+  "amount": 25.00,
+  "itemId": 1
+}
+```
+
+**Response**: `201 Created`
+```json
+{
+  "id": 1,
+  "name": "Frete",
+  "amount": 25.00,
+  "item": {
+    "id": 1,
+    "name": "iPhone 13"
+  }
+}
+```
+
+Ao criar uma despesa, o lucro e a margem são recalculados automaticamente quando o
+item já foi vendido.
+
+#### Obter Despesa por ID
+**Endpoint**: `GET /expense/{expenseId}`
+**Autenticação**: Requer token JWT
+
+#### Listar Despesas de um Item
+**Endpoint**: `GET /expense/item/{itemId}`
+**Autenticação**: Requer token JWT
+
+#### Atualizar Despesa
+**Endpoint**: `PATCH /expense/{expenseId}`
+**Autenticação**: Requer token JWT
+
+**Request Body**:
+```json
+{
+  "name": "Frete atualizado",
+  "amount": 35.50
+}
+```
+
+`name` é obrigatório; `amount` é opcional e, quando informado, deve ser positivo.
+`itemId` não é aceito e a despesa permanece associada ao item original.
+
+#### Excluir Despesa
+**Endpoint**: `DELETE /expense/{expenseId}`
+**Autenticação**: Requer token JWT
+
+Retorna `204 No Content`. A exclusão também recalcula as métricas do item vendido.
+
 ## Modelo de Dados
 
 ### Entidade User (Usuário)
@@ -759,8 +913,10 @@ Authorization: Bearer <seu-token-jwt>
 - `id`: Long (auto-generated, chave primária)
 - `username`: String (único, 3-20 caracteres)
 - `password`: String (hasheado com BCrypt)
-- `balance`: BigDecimal (saldo do usuário)
 - `categories`: Set<Category> (relacionamento one-to-many)
+
+O saldo não é armazenado na entidade `User`. Ele é derivado pelo `BalanceService`
+a partir dos itens, vendas e despesas e apenas aparece nos DTOs de resposta do usuário.
 
 **Relacionamentos**:
 - One-to-Many com Category (um usuário possui muitas categorias)
@@ -776,7 +932,6 @@ public class User implements UserDetails {
     private Long id;
     private String username;
     private String password;
-    private BigDecimal balance;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Category> categories;
@@ -829,9 +984,11 @@ public class Category {
 - `profit`: BigDecimal (lucro calculado, nullable)
 - `margin`: BigDecimal (margem calculada, nullable)
 - `category`: Category (relacionamento many-to-one)
+- `expense`: List<Expense> (despesas adicionais, relacionamento one-to-many)
 
 **Relacionamentos**:
 - Many-to-One com Category (muitos itens pertencem a uma categoria)
+- One-to-Many com Expense (um item pode possuir várias despesas)
 
 **Implementação**:
 ```java
@@ -853,8 +1010,25 @@ public class Item {
 
     @ManyToOne(optional = false)
     private Category category;
+
+    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Expense> expense = new ArrayList<>();
 }
 ```
+
+### Entidade Expense (Despesa)
+
+**Tabela**: `tb_expense`
+
+**Atributos**:
+- `id`: Long (auto-generated, chave primária)
+- `name`: String
+- `amount`: BigDecimal (valor positivo)
+- `item`: Item (relacionamento many-to-one obrigatório)
+
+Cada despesa está associada a exatamente um item por meio da coluna `item_id`.
+O item mantém a coleção sem setter público; a associação deve ser feita pelos métodos
+`addExpense` e `removeExpense`.
 
 ### Enum ItemStatus
 
@@ -914,7 +1088,7 @@ Os DTOs são utilizados para transferência de dados entre camadas, isolando o m
 **Campos**:
 - `id`: Long
 - `name`: String
-- `user`: UserDTO
+- `user`: UserSummaryDTO (`id` e `username`)
 
 ### DTOs de Item
 
@@ -974,6 +1148,45 @@ Os DTOs são utilizados para transferência de dados entre camadas, isolando o m
 - `margin`: BigDecimal (calculado)
 - `category`: CategoryDTO
 
+#### FinancialSummaryDTO
+**Uso**: Resumo financeiro do usuário autenticado
+**Campos**:
+- `balance`
+- `totalInvested`
+- `totalPurchases`
+- `totalExpenses`
+- `totalSales`
+- `totalProfit`
+- `totalLoss`
+- `averageMargin`
+- `inventoryValue`
+- `totalItems`
+- `availableItems`
+- `soldItems`
+
+#### ExpenseInsertDTO
+**Uso**: Criação de despesa
+**Campos**:
+- `name`: String (@NotBlank)
+- `amount`: BigDecimal (@NotNull, @Positive)
+- `itemId`: Long (@NotNull)
+
+#### ExpenseUpdateDTO
+**Uso**: Atualização de despesa
+**Campos**:
+- `name`: String (@NotBlank)
+- `amount`: BigDecimal (opcional, deve ser positivo quando informado)
+
+O item não faz parte desse DTO e não pode ser alterado.
+
+#### ExpenseDTO
+**Uso**: Resposta de despesa
+**Campos**:
+- `id`: Long
+- `name`: String
+- `amount`: BigDecimal
+- `item`: ItemSummaryDTO (`id` e `name`)
+
 ## Repositórios (Data Access Layer)
 
 Os repositórios são interfaces que estendem `JpaRepository`, fornecendo métodos para acesso a dados através do Spring Data JPA.
@@ -1008,6 +1221,15 @@ Os repositórios são interfaces que estendem `JpaRepository`, fornecendo métod
 **Métodos Herdados**: save, findById, findAll, deleteById, etc.
 
 **Observação**: Os métodos utilizam navegação de propriedades do JPA (`Category_UserId`) para realizar consultas eficientes através de relacionamentos.
+
+### ExpenseRepository
+**Localização**: `repositories/ExpenseRepository.java`
+
+**Métodos Customizados**:
+- `findAllByItemId(Long itemId)`: Lista as despesas associadas a um item
+
+O acesso efetivo às despesas é autorizado pelo `ExpenseService`, que valida se o
+item associado pertence ao usuário autenticado.
 
 ## Tratamento de Exceções
 
@@ -1238,7 +1460,8 @@ backend/
 - `updateItem(Long, ItemUpdateDTO)`: Atualiza informações do item
 
 **Cálculos Financeiros**:
-- **Lucro**: `sellPrice - buyPrice`
+- **Custo total**: `buyPrice + sum(expense.amount)`
+- **Lucro/prejuízo**: `sellPrice - custo total`
 - **Margem**: `(profit / sellPrice) * 100` com arredondamento de 4 casas decimais
 
 **Validações Implementadas**:
@@ -1259,6 +1482,27 @@ backend/
 - Verifica correspondência de senhas no registro
 - Verifica unicidade de username
 - Hash de senha com BCrypt antes de persistir
+
+### BalanceService
+**Localização**: `services/BalanceService.java`
+**Responsabilidade**: Centralizar todos os cálculos financeiros do backend
+**Métodos**:
+- `calculateByUserId(Long)`: Calcula o saldo derivado do usuário
+- `calculateFinancialSummaryByUserId(Long)`: Calcula o resumo financeiro completo
+- `recalculateItemMetrics(Item)`: Recalcula lucro e margem de item vendido
+
+O serviço considera as despesas adicionais no custo total e é acionado após venda,
+criação, edição ou exclusão de despesas.
+
+### ExpenseService
+**Localização**: `services/ExpenseService.java`
+**Responsabilidade**: Gerenciar despesas e validar o proprietário do item associado
+**Métodos**:
+- `create(ExpenseInsertDTO)`: Cria despesa vinculada a um item do usuário
+- `getExpenseById(Long)`: Busca uma despesa autorizada
+- `getAllExpensesByItem(Long)`: Lista despesas de um item autorizado
+- `updateExpenseById(Long, ExpenseUpdateDTO)`: Atualiza nome e valor
+- `deleteById(Long)`: Exclui despesa e recalcula métricas
 
 ### TokenService
 **Localização**: `services/TokenService.java`
@@ -1293,6 +1537,7 @@ backend/
 **Endpoints**:
 - `GET /users/me`: Retorna dados do usuário autenticado
 - `GET /users/{id}`: Retorna usuário por ID (apenas próprio usuário)
+- `GET /users/me/financial-summary`: Retorna métricas financeiras calculadas
 - `POST /users/register`: Registra novo usuário
 - `DELETE /users/{id}`: Deleta usuário (apenas próprio usuário)
 
@@ -1311,10 +1556,21 @@ backend/
 **Endpoints**:
 - `POST /items`: Cria novo item
 - `GET /items`: Lista itens do usuário (com filtro opcional por categoria)
+- `GET /items/category/{categoryId}`: Lista itens por categoria
 - `GET /items/{itemId}`: Retorna item por ID
 - `PUT /items/{itemId}`: Atualiza item
 - `PATCH /items/{itemId}/sell`: Registra venda de item
 - `DELETE /items/{itemId}`: Deleta item
+
+### ExpenseController
+**Localização**: `controllers/ExpenseController.java`
+**Responsabilidade**: Gerenciar despesas adicionais vinculadas aos itens
+**Endpoints**:
+- `POST /expense`: Cria despesa
+- `GET /expense/{expenseId}`: Busca despesa por ID
+- `GET /expense/item/{itemId}`: Lista despesas do item
+- `PATCH /expense/{expenseId}`: Atualiza despesa sem trocar o item
+- `DELETE /expense/{expenseId}`: Exclui despesa
 
 ## Configurações (Configuration Layer)
 
@@ -1346,6 +1602,9 @@ backend/
 - `http://localhost:3000`
 - `http://localhost:4200`
 - `http://localhost:5173`
+
+O CORS não habilita HTTPS automaticamente; o protocolo da origem deve corresponder
+à configuração usada pelo frontend.
 
 ## Fluxo de Requisição
 
@@ -1387,28 +1646,33 @@ O fluxo completo de uma requisição na aplicação:
 1. **Paginação**: Implementar paginação para listagens de itens e categorias
 2. **Ordenação**: Permitir ordenação customizada nas listagens
 3. **Filtros Avançados**: Adicionar filtros por período, faixa de preço, status
-4. **Dashboard**: Endpoint com métricas agregadas (lucro total, itens vendidos, etc.)
-5. **Exportação**: Endpoint para exportar dados em CSV/Excel
-6. **Upload de Imagens**: Implementar upload de imagens para itens
-7. **Auditoria**: Log de alterações em itens e categorias
-8. **Notificações**: Sistema de notificações para itens vendidos
-9. **Roles Avançadas**: Implementar roles de admin e diferentes permissões
-10. **Cache**: Implementar cache para consultas frequentes
+4. **Exportação**: Endpoint para exportar dados em CSV/Excel
+5. **Upload de Imagens**: Implementar upload de imagens para itens
+6. **Auditoria**: Log de alterações em itens, despesas e categorias
+7. **Notificações**: Sistema de notificações para itens vendidos
+8. **Roles Avançadas**: Implementar roles de admin e diferentes permissões
+9. **Cache**: Implementar cache para consultas frequentes
 
 ## Resumo Técnico
 
 A Financial API é uma aplicação RESTful completa desenvolvida com Spring Boot 4.1.0 e Java 25, seguindo princípios de arquitetura em camadas. A aplicação implementa:
 
 - **Autenticação JWT stateless** com Spring Security
-- **CRUD completo** para usuários, categorias e itens
+- **CRUD completo** para usuários, categorias, itens e despesas
 - **Isolamento de dados** multi-tenant por usuário
-- **Cálculos financeiros** automáticos (lucro e margem)
+- **Cálculos financeiros** automáticos (saldo, custo total, lucro, prejuízo e margem)
+- **Resumo financeiro** para consumo direto pelo frontend
+- **Despesas adicionais** vinculadas a um único item, com recálculo automático
 - **Validação robusta** em múltiplas camadas
 - **Tratamento global de exceções** com respostas padronizadas
 - **API RESTful** seguindo melhores práticas
 - **Banco de dados H2** para desenvolvimento (PostgreSQL configurável para produção)
 
 A aplicação está pronta para uso em desenvolvimento e pode ser facilmente configurada para produção alterando as propriedades do banco de dados e JWT.
+Em desenvolvimento, a aplicação usa H2 em memória com `ddl-auto=create-drop`; os dados
+são recriados a cada inicialização. O console está disponível em
+`http://localhost:8080/h2-console` com JDBC URL `jdbc:h2:mem:testdb`, usuário `sa`
+e senha vazia.
 
 ## Documentação Adicional
 

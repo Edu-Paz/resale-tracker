@@ -35,8 +35,8 @@ O Resale Tracker é uma ferramenta de controle financeiro voltada para revendedo
 - **Gestão de Inventário**: Cadastro de itens com preço de compra, data, categoria e imagem opcional
 - **Organização por Categorias**: Criação e gerenciamento de categorias para agrupar produtos
 - **Registro de Vendas**: Marcação de itens como vendidos com preço e data da venda
-- **Cálculo Automático**: Cálculo automático de lucro/prejuízo e margem de lucro
-- **Dashboard Financeiro**: Visualização clara de saldo acumulado, lucro realizado, prejuízo e capital em estoque
+- **Dashboard Financeiro**: Visualização de saldo, lucro, prejuízo, margem e indicadores calculados pelo backend
+- **Despesas por Item**: Cadastro, edição, exclusão e visualização dos últimos gastos adicionais de cada item
 - **Filtros e Busca**: Filtragem por status, categoria e busca por nome
 
 ### Público-Alvo
@@ -150,13 +150,15 @@ frontend/
 │   ├── components/              # Componentes reutilizáveis
 │   │   ├── AppLink.jsx          # Link customizado para navegação SPA
 │   │   ├── AuthForm.jsx         # Formulário de autenticação (login/registro)
-│   │   ├── CategoryForm.jsx     # Formulário de criação de categoria
+│   │   ├── CategoryForm.jsx     # Formulário de criação rápida de categoria
+│   │   ├── CategoryManager.jsx  # Tela de CRUD de categorias
+│   │   ├── ExpenseManager.jsx   # Modal de CRUD de despesas por item
 │   │   ├── FeatureCard.jsx      # Card de funcionalidade (landing page)
 │   │   ├── Footer.jsx           # Rodapé da aplicação
 │   │   ├── ItemForm.jsx         # Formulário de cadastro de item
-│   │   ├── ItemList.jsx         # Lista de itens com filtros e busca
+│   │   ├── ItemList.jsx         # Lista de itens com filtros, busca e gastos recentes
 │   │   ├── ResultBadge.jsx      # Badge de resultado (lucro/prejuízo)
-│   │   └── SiteHeader.jsx       # Cabeçalho do site
+│   │   └── SiteHeader.jsx       # Cabeçalho e navegação principal
 │   ├── pages/                   # Páginas principais
 │   │   ├── AuthPage.jsx         # Página de autenticação
 │   │   ├── HomePage.jsx         # Landing page
@@ -329,6 +331,34 @@ Formulário para criação de categorias.
 - `isSubmitting`: Indica se formulário está sendo submetido
 - `formMessage`: Objeto com tipo (error/success) e texto da mensagem
 
+O componente também é usado para criar uma categoria rapidamente durante o cadastro de um item. O gerenciamento completo fica em `CategoryManager.jsx`.
+
+### CategoryManager.jsx
+
+Tela dedicada para gerenciamento de categorias.
+
+**Responsabilidades:**
+- Listar categorias cadastradas
+- Criar categorias
+- Editar o nome por meio de modal
+- Excluir por meio de modal de confirmação
+- Atualizar os nomes usados nos cards de itens
+- Exibir o erro da API quando a categoria possui itens vinculados
+
+### ExpenseManager.jsx
+
+Modal de gerenciamento das despesas associadas a um único item.
+
+**Responsabilidades:**
+- Buscar despesas com `GET /expense/item/{itemId}`
+- Criar despesas vinculadas ao item
+- Editar somente nome e valor da despesa
+- Excluir despesas com confirmação
+- Exibir os últimos gastos no card do item
+- Buscar novamente o item após alterações para receber `profit` e `margin` recalculados pelo backend
+
+O modal usa overlay fixo, fundo desfocado, bloqueio de interação com a página e fechamento ao clicar fora do painel.
+
 ### FeatureCard.jsx
 
 Card simples para exibição de funcionalidades na landing page.
@@ -379,7 +409,8 @@ Componente complexo para listagem de itens com filtros, busca e ordenação.
 - Filtragem por categoria
 - Busca por nome ou categoria
 - Ordenação (recentes, antigos, maior preço, maior lucro)
-- Cálculo de estatísticas do inventário
+- Exibição dos valores financeiros retornados pela API
+- Exibição dos três gastos adicionais mais recentes
 - Exibição de empty states
 - Ações de edição, venda e exclusão
 
@@ -389,10 +420,11 @@ Componente complexo para listagem de itens com filtros, busca e ordenação.
 - Busca: Texto livre por nome ou categoria
 - Ordenação: recent, oldest, price-desc, profit-desc
 
-**Estatísticas Calculadas:**
-- Total em estoque (quantidade e valor investido)
-- Itens vendidos (quantidade e resultado financeiro)
+**Estatísticas exibidas:**
+- Quantidade de itens disponíveis e vendidos
 - Total de fichas cadastradas
+- `profit` e `margin` retornados pelo backend para cada item vendido
+- Últimos três gastos adicionais e seus valores
 
 **Estados:**
 - `searchTerm`: Termo de busca
@@ -409,7 +441,7 @@ Badge visual para exibição de resultado financeiro (lucro/prejuízo).
 
 **Responsabilidades:**
 - Formatação de valores monetários
-- Cálculo de sinal (+/-)
+- Formatação do sinal (+/-) para exibição
 - Aplicação de estilos condicionais (lucro/prejuízo)
 - Exibição de margem percentual
 
@@ -428,6 +460,7 @@ Cabeçalho simples com logo da aplicação.
 
 **Responsabilidades:**
 - Exibição do logo como link para home
+- Links para gerenciamento de itens e categorias
 - Navegação SPA via AppLink
 
 ---
@@ -448,7 +481,10 @@ A aplicação utiliza um sistema de roteamento customizado baseado na History AP
   home: '/',
   login: '/login',
   register: '/cadastro',
-  user: '/usuario'
+  user: '/usuario',
+  items: '/itens',
+  newItem: '/itens/novo',
+  categories: '/categorias'
 }
 ```
 
@@ -456,6 +492,7 @@ A aplicação utiliza um sistema de roteamento customizado baseado na History AP
 - `getRoute()`: Função que retorna a rota atual baseada em `window.location.pathname`
 - `navigate()`: Função que usa `history.pushState()` para navegação sem recarregamento
 - Event listener `popstate`: Detecta navegação pelo botão voltar/avançar do navegador
+- A URL representa a seção atual do painel e pode ser recarregada ou compartilhada
 
 ### HomePage.jsx
 
@@ -468,7 +505,7 @@ Landing page pública da aplicação.
 
 **Funcionalidades:**
 - Navegação para login e registro via AppLink
-- Exibição de 3 funcionalidades principais (Gestão de inventário, Cálculo de lucro, Organização por categorias)
+- Exibição de 3 funcionalidades principais (Gestão de inventário, Acompanhamento financeiro, Organização por categorias)
 
 ### AuthPage.jsx
 
@@ -490,39 +527,44 @@ Dashboard principal do usuário, página mais complexa da aplicação.
 
 **Responsabilidades:**
 - Gerenciamento de sessão e autenticação
-- Carregamento de dados do usuário, itens e categorias
-- Navegação por abas (Visão geral, Itens, Adicionar item, Categorias)
-- Exibição de métricas financeiras
+- Carregamento de usuário, resumo financeiro, itens, categorias e despesas
+- Navegação por seções com rotas dedicadas
+- Exibição de métricas financeiras calculadas pelo endpoint de resumo
 - Gerenciamento de CRUD de itens
 - Registro de vendas
 - Edição e exclusão de itens
+- Abertura do gerenciamento de despesas de cada item
 
-**Abas do Dashboard:**
-1. **Visão Geral (overview)**: Métricas financeiras, itens em estoque, últimas vendas
-2. **Itens (items)**: Lista completa de itens com filtros e busca
-3. **Adicionar Item (item)**: Formulário para cadastro de novo item
-4. **Categorias (category)**: Formulário para criação de categorias
+**Seções do Dashboard:**
+1. **Visão geral (`/usuario`)**: Métricas financeiras, itens disponíveis e últimas vendas
+2. **Itens (`/itens`)**: Lista completa com filtros, busca, ordenação e despesas recentes
+3. **Adicionar item (`/itens/novo`)**: Formulário para cadastro de item
+4. **Categorias (`/categorias`)**: CRUD completo de categorias
 
 **Subcomponentes:**
 - `OverviewTab`: Tab de visão geral com métricas e listas resumidas
 - `SellItemPanel`: Painel para registro de venda
 - `EditItemPanel`: Painel para edição de item
 - `DeleteItemDialog`: Modal de confirmação de exclusão
+- `ExpenseManager`: Modal de gerenciamento de despesas
+- `CategoryManager`: Gerenciamento e modais de categorias
 
 **Estados Principais:**
 - `user`: Dados do usuário autenticado
+- `financialSummary`: Resumo financeiro retornado pelo backend
 - `items`: Lista de itens do usuário
 - `categories`: Lista de categorias do usuário
-- `activeTab`: Tab ativa do dashboard
+- `activeTab`: Seção inicial derivada da rota
 - `sellingItem`: Item sendo vendido (modal)
 - `editingItem`: Item sendo editado (modal)
 - `deletingItem`: Item sendo excluído (modal)
+- `expensesItem`: Item cujo modal de despesas está aberto
 
-**Métricas Calculadas:**
-- Saldo acumulado (do backend)
-- Lucro realizado (soma de profits positivos)
-- Prejuízo total (soma absoluta de profits negativos)
-- Capital em estoque (soma de buyPrice de itens AVAILABLE)
+**Métricas financeiras:**
+- Todas vêm de `GET /users/me/financial-summary`
+- O frontend não calcula lucro, prejuízo, margem, investimento ou despesas
+- Cards de item exibem diretamente `profit` e `margin` do `ItemDTO`
+- Após alterações, o resumo financeiro e o item afetado são buscados novamente
 
 **Validações:**
 - Data de venda não pode ser futura
@@ -567,17 +609,54 @@ Função genérica para requisições HTTP que:
 - `login(credentials)`: POST /auth/login
 - `register(credentials)`: POST /users/register
 - `getCurrentUser(token)`: GET /users/me
+- `getFinancialSummary(token)`: GET /users/me/financial-summary
 
 **Categorias:**
 - `getCategories(token)`: GET /categories
 - `createCategory(token, category)`: POST /categories
+- `updateCategory(token, categoryId, category)`: PUT /categories/{id}
+- `deleteCategory(token, categoryId)`: DELETE /categories/{id}
 
 **Itens:**
 - `getItems(token, categoryId)`: GET /items (com query param opcional)
+- `getItemById(token, itemId)`: GET /items/{itemId}
 - `createItem(token, item)`: POST /items
 - `updateItem(token, itemId, item)`: PUT /items/{itemId}
 - `sellItem(token, itemId, sellData)`: PATCH /items/{itemId}/sell
 - `deleteItem(token, itemId)`: DELETE /items/{itemId}
+
+**Despesas:**
+- `getExpensesByItem(token, itemId)`: GET /expense/item/{itemId}
+- `createExpense(token, expense)`: POST /expense
+- `updateExpense(token, expenseId, expense)`: PATCH /expense/{expenseId}
+- `deleteExpense(token, expenseId)`: DELETE /expense/{expenseId}
+
+O helper `authorized()` adiciona o cabeçalho `Authorization: Bearer <token>` às requisições protegidas.
+
+### Fonte de verdade financeira
+
+O backend é a única fonte de verdade para valores financeiros. O frontend não recalcula `profit`, `margin`, `balance`, `totalProfit`, `totalLoss`, `totalInvested` ou `totalExpenses`.
+
+O dashboard consome o resumo:
+
+```json
+{
+  "balance": 200.00,
+  "totalInvested": 320.00,
+  "totalPurchases": 300.00,
+  "totalExpenses": 20.00,
+  "totalSales": 500.00,
+  "totalProfit": 180.00,
+  "totalLoss": 0.00,
+  "averageMargin": 36.00,
+  "inventoryValue": 0.00,
+  "totalItems": 1,
+  "availableItems": 0,
+  "soldItems": 1
+}
+```
+
+Como `ItemDTO` não inclui despesas, o frontend busca as despesas separadamente para exibir os três últimos gastos no card. Depois de criar, editar ou excluir uma despesa, busca novamente o item para exibir os valores financeiros recalculados pelo backend.
 
 **Tratamento de Erros:**
 - Status 400: Erro de validação
@@ -623,7 +702,8 @@ A aplicação utiliza gerenciamento de estado local com React Hooks, sem bibliot
 **Estado Sincronizado com API:**
 - Carregado via useEffect ao montar componente
 - Atualizado após operações CRUD
-- Exemplo: lista de itens após criar novo item
+- Após operações financeiras, o frontend busca novamente os dados calculados pelo backend
+- Exemplo: resumo financeiro após venda ou alteração de despesa
 
 ### Exemplos de Gerenciamento de Estado
 
@@ -651,9 +731,14 @@ useEffect(() => {
     return
   }
 
-  Promise.all([getCurrentUser(token), getItems(token), getCategories(token)])
-    .then(([currentUser, userItems, userCategories]) => {
+  Promise.all([
+    getCurrentUser(token),
+    getFinancialSummary(token),
+    getItems(token),
+    getCategories(token),
+  ]).then(([currentUser, summary, userItems, userCategories]) => {
       setUser(currentUser)
+      setFinancialSummary(summary)
       setItems(userItems)
       setCategories(userCategories)
     })
@@ -871,17 +956,18 @@ function getFormErrorMessage(error) {
 
 ### Otimizações Implementadas
 
-**Code Splitting:**
-- Vite realiza code splitting automático por rota
-- Carregamento sob demanda de componentes
+**Bundle e rotas:**
+- A aplicação usa roteamento SPA próprio e um bundle principal gerado pelo Vite
+- As rotas alteram a URL sem recarregar a página
+- Componentes e estado permanecem no mesmo runtime da aplicação
 
 **Lazy Loading de Imagens:**
 - Atributo `loading="lazy"` em imagens de itens
 - Fallback para esconder imagem em caso de erro
 
 **Memoização:**
-- `useMemo` para cálculos pesados (filtragem, ordenação)
-- Evita recálculos desnecessários em re-renders
+- `useMemo` para filtragem e ordenação dos itens
+- Não há cálculos financeiros no frontend; valores financeiros são exibidos a partir da API
 
 **Otimização de Re-renders:**
 - Componentes funcionais com dependências corretas
