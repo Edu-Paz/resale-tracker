@@ -26,6 +26,23 @@
   color: var(--ink);
 }
 
+.header-button {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.875rem;
+  padding: 7px 12px;
+}
+
+.header-button:hover {
+  border-color: var(--ink-muted);
+  color: var(--ink);
+}
+
 .logo {
   color: var(--ink);
   font-family: var(--font-serif);
