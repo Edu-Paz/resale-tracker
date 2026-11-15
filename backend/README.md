@@ -1676,4 +1676,4 @@ e senha vazia.
 
 ## Documentação Adicional
 
-Para informações específicas sobre os endpoints, consulte o arquivo `API_REFERENCE.md` que contém documentação adicional da API.
+Para informações específicas sobre os endpoints, consulte o arquivo `api-docs.json` que contém documentação adicional da API.
