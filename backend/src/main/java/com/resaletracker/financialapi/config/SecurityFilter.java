@@ -6,7 +6,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,34 +19,38 @@ import java.io.IOException;
 @Component
 public class SecurityFilter extends OncePerRequestFilter {
 
-    @Autowired
-    private TokenService tokenService;
+    private static final Logger log = LoggerFactory.getLogger(SecurityFilter.class);
 
-    @Autowired
-    private UserRepository userRepository;
+    private final TokenService tokenService;
+    private final UserRepository userRepository;
+
+    public SecurityFilter(TokenService tokenService, UserRepository userRepository) {
+        this.tokenService = tokenService;
+        this.userRepository = userRepository;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        System.out.println("[SECURITY_FILTER] Processing request for URI: " + request.getRequestURI());
+        log.info("Processing request for URI: {}", request.getRequestURI());
 
         var token = this.recoverToken(request);
-        System.out.println("[SECURITY_FILTER] Recovered token: " + (token != null ? "YES" : "NO"));
+        log.info("Recovered token: {}", token != null ? "YES" : "NO");
 
         if (token != null) {
             boolean isTokenValid = tokenService.isTokenValid(token);
-            System.out.println("[SECURITY_FILTER] Token validity: " + isTokenValid);
+            log.info("Token validity: {}", isTokenValid);
 
             if (isTokenValid) {
                 var username = tokenService.getUsernameFromToken(token);
-                System.out.println("[SECURITY_FILTER] Username from token: " + username);
+                log.info("Username from token: {}", username);
 
                 UserDetails user = userRepository.findByUsername(username);
-                System.out.println("[SECURITY_FILTER] User found in repo: " + (user != null ? "YES" : "NO"));
+                log.info("User found in repo: {}", user != null ? "YES" : "NO");
 
                 if (user != null) {
                     var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
                     SecurityContextHolder.getContext().setAuthentication(authentication);
-                    System.out.println("[SECURITY_FILTER] SecurityContextHolder updated for user: " + username);
+                    log.info("SecurityContextHolder updated for user: {}", username);
                 }
             }
         }
