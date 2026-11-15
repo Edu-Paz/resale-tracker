@@ -4,6 +4,7 @@ import com.resaletracker.financialapi.entities.Item;
 import com.resaletracker.financialapi.entities.ItemStatus;
 import com.resaletracker.financialapi.repositories.ItemRepository;
 import com.resaletracker.financialapi.dtos.user.FinancialSummaryDTO;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,19 +14,21 @@ import java.math.RoundingMode;
 @Service
 public class BalanceService {
     private final ItemRepository itemRepository;
+    private final BalanceService self;
 
-    public BalanceService(ItemRepository itemRepository) {
+    public BalanceService(ItemRepository itemRepository, @Lazy BalanceService self) {
         this.itemRepository = itemRepository;
+        this.self = self;
     }
 
     @Transactional(readOnly = true)
     public BigDecimal calculateByUserId(Long userId) {
-        return calculateFinancialSummaryByUserId(userId).getBalance();
+        return self.calculateFinancialSummaryByUserId(userId).getBalance();
     }
 
     @Transactional(readOnly = true)
     public FinancialSummaryDTO calculateFinancialSummaryByUserId(Long userId) {
-        var items = itemRepository.findAllByCategory_UserId(userId);
+        var items = itemRepository.findAllWithExpensesByUserId(userId);
         BigDecimal totalPurchases = BigDecimal.ZERO;
         BigDecimal totalExpenses = BigDecimal.ZERO;
         BigDecimal totalSales = BigDecimal.ZERO;
