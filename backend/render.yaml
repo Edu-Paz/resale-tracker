@@ -8,6 +8,8 @@ services:
     name: financial-api
     runtime: docker
     plan: free
+    # O backend está numa subpasta do repositório (repo raiz = Projeto_Final)
+    rootDir: backend
     dockerfilePath: ./Dockerfile
     healthCheckPath: /v3/api-docs
     envVars:
