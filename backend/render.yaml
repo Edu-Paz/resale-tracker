@@ -1,0 +1,30 @@
+# Blueprint do Render: cria o Web Service (a API) que conecta no banco PostgreSQL do SUPABASE.
+# Para usar: Render -> Blueprint -> New Blueprint -> apontar para este repositório.
+# NOTA: o health check usa /v3/api-docs (endpoint OpenAPI público via permitAll no SecurityConfig),
+# que retorna HTTP 200 direto (sem redirect).
+
+services:
+  - type: web
+    name: financial-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /v3/api-docs
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      # Banco no SUPABASE (PostgreSQL). Preencha no painel (Web Service -> Environment):
+      #   DB_URL          = jdbc:postgresql://aws-0-<REGIAO>.pooler.supabase.com:6543/postgres
+      #                     (Project Settings -> Database -> Connection string -> JDBC, ou monte com a URL)
+      #   DB_USERNAME     = postgres.<REFERENCIA_DO_PROJETO>
+      #   DB_PASSWORD     = senha do banco
+      #   PROD_JWT_SECRET = chave forte para assinatura JWT em produção
+      - key: DB_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: PROD_JWT_SECRET
+        sync: false
+
