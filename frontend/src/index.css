@@ -1,4 +1,4 @@
-@tailwind base;
+﻿@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -11,6 +11,7 @@
 */
 
 
+@layer base {
 :root {
   /* ============================================================
      IDENTIDADE VISUAL — REVENDI
@@ -127,7 +128,10 @@ input:focus-visible {
   margin: 0 auto;
 }
 
-.header {
+}
+@layer components {
+  /* ===== Header & navegação principal ===== */
+  .header {
   @apply sticky top-0 z-[100] border-b border-line bg-surface;
   padding: 14px 0;
 }
@@ -190,7 +194,9 @@ input:focus-visible {
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
 }
 
+}
 @layer components {
+  /* ===== Botões (via @apply) ===== */
   .cta-button,
   .secondary-button,
   .destructive-button {
@@ -241,6 +247,9 @@ input:focus-visible {
     @apply border-loss-strong bg-loss-strong;
   }
 }
+
+@layer components {
+  /* ===== Componentes de UI (badges, modais, labels) ===== */
 
 /* Badge de categoria neutro (etiqueta simples) */
 .category-badge {
@@ -369,6 +378,7 @@ input:focus-visible {
   }
 }
 
+/* ===== Landing page (hero, preview, steps, CTA) ===== */
 .hero {
   border-bottom: 1px solid var(--line);
   background: var(--surface);
@@ -643,6 +653,7 @@ input:focus-visible {
   font-size: 0.9375rem;
 }
 
+/* ===== Autenticação ===== */
 .auth-main {
   display: grid;
   flex: 1;
@@ -817,6 +828,7 @@ input:focus-visible {
   color: var(--ink-muted);
 }
 
+/* ===== Dashboard (métricas, inventário, formulários) ===== */
 .metric-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1749,6 +1761,7 @@ input:focus-visible {
 .expense-row > div:first-child { display: grid; gap: 4px; }
 .expense-row span { color: var(--ink-muted); font-family: var(--font-mono); font-size: 0.875rem; }
 
+/* ===== Responsividade ===== */
 /* Telas médias: métricas em 2 colunas (evita valores estourados) */
 @media (max-width: 900px) {
   .metric-grid {
@@ -1871,6 +1884,16 @@ input:focus-visible {
     margin: 0 auto;
   }
 
+  /* Feature cards: não esticam até a borda no mobile */
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .features-grid > * {
+    width: min(100%, 340px);
+    margin: 0 auto;
+  }
+
   .preview-op {
     text-align: center;
   }
@@ -1878,4 +1901,5 @@ input:focus-visible {
   .cta-banner {
     padding: 48px 20px;
   }
+}
 }
