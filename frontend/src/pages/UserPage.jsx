@@ -757,7 +757,7 @@ function UserPage({onNavigate, onLogout, initialTab = 'overview'}) {
     }
 
     if (!user) {
-        return <main className="user-main"><output className="user-loading">Carregando seus dados...</output></main>
+        return <main className="user-main"><output className="user-loading"><span className="user-loading-dot" aria-hidden="true"></span> Carregando seus dados...</output></main>
     }
 
     const availableItems = items.filter((item) => item.status === 'AVAILABLE')
@@ -769,7 +769,7 @@ function UserPage({onNavigate, onLogout, initialTab = 'overview'}) {
                 <section className="dashboard-header" aria-labelledby="user-title">
                     <div>
                         <p className="eyebrow">Painel de controle</p>
-                        <h1 id="user-title">Olá, {user.username}.</h1>
+                        <h1 id="user-title">Olá, <span className="dashboard-name">{user.username}</span>.</h1>
                         <p className="dashboard-intro">Acompanhe o movimento da sua operação em um só lugar.</p>
                     </div>
                     <button className="secondary-button" type="button" onClick={handleLogout}>Sair</button>

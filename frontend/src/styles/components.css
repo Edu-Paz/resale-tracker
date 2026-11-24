@@ -148,7 +148,7 @@
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(31, 42, 36, 0.5);
+  background: rgba(9, 9, 11, 0.72);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   display: flex;
@@ -294,9 +294,9 @@
 
 /* Etiqueta neutra de disponibilidad */
 .stock-tag {
-  border: 1px solid var(--line);
+  border: 1px solid rgba(74, 222, 128, 0.35);
   border-radius: 4px;
-  color: var(--ink-muted);
+  color: var(--muted);
   background: transparent;
   font-size: 0.75rem;
   font-weight: 500;
