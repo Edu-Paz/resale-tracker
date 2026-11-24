@@ -1,7 +1,7 @@
 .header {
   padding: 16px 0;
   border-bottom: 1px solid var(--line);
-  background: var(--card);
+  background: var(--surface);
 }
 
 .header .container {
@@ -16,14 +16,14 @@
 }
 
 .header-link {
-  color: var(--ink-muted);
+  color: var(--muted);
   font-size: 0.875rem;
   font-weight: 500;
   text-decoration: none;
 }
 
 .header-link:hover {
-  color: var(--ink);
+  color: var(--mint);
 }
 
 .header-button {
@@ -31,7 +31,7 @@
   background: transparent;
   border: 1px solid var(--line);
   border-radius: 6px;
-  color: var(--ink-muted);
+  color: var(--muted);
   cursor: pointer;
   font: inherit;
   font-size: 0.875rem;
@@ -39,16 +39,22 @@
 }
 
 .header-button:hover {
-  border-color: var(--ink-muted);
-  color: var(--ink);
+  border-color: var(--neon);
+  color: var(--text);
 }
 
 .logo {
-  color: var(--ink);
+  color: var(--text);
   font-family: var(--font-serif);
-  font-size: 1.25rem;
   font-weight: 600;
   text-decoration: none;
+}
+
+.logo-mark {
+  display: block;
+  height: 34px;
+  width: auto;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
 }
 
 .cta-button,
@@ -67,12 +73,13 @@
 .cta-button {
   border: 1px solid var(--ochre);
   background: var(--ochre);
-  color: var(--card);
+  color: var(--bg);
 }
 
 .cta-button:hover {
-  background: #A87324;
-  border-color: #A87324;
+  background: #16A34A;
+  border-color: #16A34A;
+  color: #F4F4F5;
 }
 
 .cta-button:disabled {
@@ -83,12 +90,12 @@
 .secondary-button {
   border: 1px solid var(--line);
   background: transparent;
-  color: var(--ink);
+  color: var(--text);
 }
 
 .secondary-button:hover {
   border-color: var(--ochre);
-  background: var(--card);
+  background: var(--surface);
 }
 
 .secondary-button:disabled {
@@ -187,22 +194,28 @@
 .feature-card {
   border: 1px solid var(--line);
   border-radius: 6px;
-  background: var(--card);
+  background: var(--surface);
   padding: 24px;
 }
 
 .feature-index,
 .eyebrow {
-  color: var(--ink-muted);
+  color: var(--muted);
   font-size: 0.8125rem;
   font-weight: 500;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
+/* Destaque neon no texto introdutório da tela inicial */
+.eyebrow {
+  color: var(--mint);
+  font-weight: 600;
+}
+
 .feature-card h3 {
   margin: 16px 0 8px;
-  color: var(--ink);
+  color: var(--text);
   font-family: var(--font-sans);
   font-size: 1.125rem;
   font-weight: 600;
@@ -210,14 +223,14 @@
 
 .feature-card p {
   margin: 0;
-  color: var(--ink-muted);
+  color: var(--muted);
   font-size: 0.9375rem;
 }
 
 .footer {
   margin-top: auto;
   border-top: 1px solid var(--line);
-  color: var(--ink-muted);
+  color: var(--muted);
   font-size: 0.8125rem;
   padding: 32px 0;
   text-align: center;

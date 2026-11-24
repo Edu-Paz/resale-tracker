@@ -5,8 +5,12 @@ function SiteHeader({ onNavigate, homePath, isAuthenticated, onLogout }) {
   return (
     <header className="header">
       <div className="container">
-        <AppLink className="logo logo-button" href={homePath} onNavigate={onNavigate}>
-          Resale Tracker
+        <AppLink className="logo" href={homePath} onNavigate={onNavigate}>
+          <img
+            src="/logo_revendi_horizontal.svg"
+            alt="Revendi — Gestão Simples, Lucro Real"
+            className="logo-mark"
+          />
         </AppLink>
         <nav className="header-nav" aria-label="Navegação principal">
           {isAuthenticated ? (
