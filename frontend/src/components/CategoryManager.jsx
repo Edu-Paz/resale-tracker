@@ -1,14 +1,49 @@
 import { useState } from 'react'
 import { ApiError, createCategory, deleteCategory, updateCategory } from '../services/api'
 import { getToken } from '../services/session'
+import ResultBadge from './ResultBadge'
 
-function CategoryManager({ categories, onCategoryCreated, onCategoryUpdated, onCategoryDeleted }) {
+function formatCurrency(value) {
+  if (value === null || value === undefined || value === '') return '—'
+  return `R$ ${Number(value).toFixed(2).replace('.', ',')}`
+}
+
+function formatDate(date) {
+  if (!date) return 'Sem data'
+  return new Date(`${date}T00:00:00`).toLocaleDateString('pt-BR')
+}
+
+function formatExpense(expense) {
+  return `${expense.name} · ${formatCurrency(expense.amount)}`
+}
+
+function itemsForCategory(items, category) {
+  const categoryName = category?.name
+  return items.filter((item) =>
+    item &&
+    (String(item.category?.id) === String(category.id) ||
+      (categoryName && item.category?.name === categoryName))
+  )
+}
+
+function CategoryManager({
+  categories,
+  items = [],
+  onCategoryCreated,
+  onCategoryUpdated,
+  onCategoryDeleted,
+  onEditItem,
+  onSellItem,
+  onDeleteItem,
+  onManageExpenses,
+}) {
   const [name, setName] = useState('')
   const [editingId, setEditingId] = useState(null)
   const [message, setMessage] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [deletingId, setDeletingId] = useState(null)
   const [categoryToDelete, setCategoryToDelete] = useState(null)
+  const [expandedCategoryId, setExpandedCategoryId] = useState(null)
 
   function getError(error, operation = 'create') {
     if (error instanceof ApiError && error.status === 422) {
@@ -92,7 +127,11 @@ function CategoryManager({ categories, onCategoryCreated, onCategoryUpdated, onC
             <article className="category-manager-card" key={category.id}>
               <span className="category-manager-icon" aria-hidden="true">{category.name.charAt(0).toUpperCase()}</span>
               <strong>{category.name}</strong>
+              <span className="category-manager-count">
+                {(() => { const n = itemsForCategory(items, category).length; return n === 1 ? '1 item' : `${n} itens` })()}
+              </span>
               <div className="item-footer-actions">
+                <button className="secondary-button category-manager-view-btn" type="button" onClick={() => setExpandedCategoryId((current) => (current === category.id ? null : category.id))}>{expandedCategoryId === category.id ? 'Ocultar itens' : 'Ver itens'}</button>
                 <button className="secondary-button" type="button" onClick={() => startEditing(category)}>Editar</button>
                 <button className="destructive-button" type="button" onClick={() => setCategoryToDelete(category)} disabled={deletingId === category.id}>{deletingId === category.id ? 'Excluindo...' : 'Excluir'}</button>
               </div>
@@ -143,6 +182,90 @@ function CategoryManager({ categories, onCategoryCreated, onCategoryUpdated, onC
           </div>
         </div>
       )}
+{expandedCategoryId && (() => {
+        const expandedCategory = categories.find((cat) => String(cat.id) === String(expandedCategoryId))
+        if (!expandedCategory) return null
+        const catItems = itemsForCategory(items, expandedCategory)
+        return (
+          <section className="category-items-section" aria-labelledby={`category-items-title-${expandedCategory.id}`}>
+            <div className="panel-heading">
+              <div>
+                <p className="eyebrow">Itens da categoria</p>
+                <h2 id={`category-items-title-${expandedCategory.id}`}>{expandedCategory.name}</h2>
+              </div>
+              <div className="panel-heading-actions">
+                <span className="panel-count">{catItems.length} {catItems.length === 1 ? 'item' : 'itens'}</span>
+                <button className="inline-action" type="button" onClick={() => setExpandedCategoryId(null)}>Fechar</button>
+              </div>
+            </div>
+            {catItems.length === 0 ? (
+              <div className="empty-state-card">
+                <p className="empty-state-title">Nenhum item nesta categoria.</p>
+                <p className="empty-state-subtitle">Os itens cadastrados nesta categoria aparecerão aqui.</p>
+              </div>
+            ) : (
+              <div className="item-card-grid category-items-grid">
+                {catItems.map((item) => (
+                  <article className="item-card" key={item.id}>
+                    {item.imgUrl && (
+                      <div className="item-card-media">
+                        <img src={item.imgUrl} alt={item.name} className="item-card-image" loading="lazy"
+                          onError={(e) => { e.currentTarget.parentElement.style.display = 'none' }} />
+                      </div>
+                    )}
+                    <div className="item-card-header">
+                      <div className="item-card-title-group">
+                        <div className="item-badges-row">
+                          <span className="category-badge">{item.category?.name || 'Sem categoria'}</span>
+                          {item.status === 'AVAILABLE' && <span className="stock-tag">Em estoque</span>}
+                        </div>
+                        <h3 className="item-name">{item.name}</h3>
+                      </div>
+                      {item.status === 'SOLD' && (
+                        <div className="item-stamp-wrapper"><ResultBadge profit={item.profit} margin={item.margin} /></div>
+                      )}
+                    </div>
+                    <dl className="item-card-details">
+                      <div className="detail-item"><dt>Preço de compra</dt><dd>{formatCurrency(item.buyPrice)}</dd></div>
+                      <div className="detail-item"><dt>Data de compra</dt><dd>{formatDate(item.buyDate)}</dd></div>
+                      {item.status === 'SOLD' && (
+                        <>
+                          <div className="detail-item"><dt>Preço de venda</dt><dd>{formatCurrency(item.sellPrice)}</dd></div>
+                          <div className="detail-item"><dt>Data da venda</dt><dd>{formatDate(item.sellDate)}</dd></div>
+                        </>
+                      )}
+                    </dl>
+                    {item.expenses?.length > 0 && (
+                      <div className="item-card-expenses">
+                        <div className="item-card-expenses-heading"><span>Últimos gastos adicionais</span></div>
+                        <ul>
+                          {item.expenses.slice(-3).reverse().map((expense) => <li key={expense.id}>{formatExpense(expense)}</li>)}
+                        </ul>
+                      </div>
+                    )}
+                    <div className="item-card-footer">
+                      <div className="item-footer-actions">
+                        {item.status === 'AVAILABLE' && onSellItem && (
+                          <button className="cta-button item-sell-btn" type="button" onClick={() => onSellItem(item)}>Registrar venda</button>
+                        )}
+                        {onEditItem && (
+                          <button className="secondary-button" type="button" onClick={() => onEditItem(item)}>Editar</button>
+                        )}
+                        {onDeleteItem && (
+                          <button className="destructive-button" type="button" onClick={() => onDeleteItem(item)}>Excluir</button>
+                        )}
+                        {onManageExpenses && (
+                          <button className="secondary-button item-expenses-button" type="button" onClick={() => onManageExpenses(item)}>Gastos</button>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
+        )
+      })()}
     </section>
   )
 }
