@@ -171,20 +171,17 @@ frontend/
 │   ├── services/                # Serviços de API e sessão
 │   │   ├── api.js               # Cliente HTTP e endpoints da API
 │   │   └── session.js           # Gerenciamento de sessão (token)
-│   ├── styles/                  # Estilos CSS
-│   │   ├── base.css             # Variáveis CSS e estilos base
-│   │   ├── components.css       # Estilos dos componentes
-│   │   └── pages.css            # Estilos das páginas
-│   ├── App.css                  # Estilos globais (legado)
 │   ├── App.jsx                  # Componente raiz da aplicação
-│   ├── index.css                # Importação de estilos
+│   ├── index.css                # Estilos únicos (Tailwind + tokens REVENDI)
 │   └── main.jsx                 # Ponto de entrada da aplicação
 ├── index.html                   # Template HTML principal
 ├── vite.config.js               # Configuração do Vite
 ├── eslint.config.js             # Configuração do ESLint
+├── tailwind.config.cjs          # Tema do Tailwind (tokens REVENDI)
+├── postcss.config.cjs           # PostCSS (Tailwind + Autoprefixer)
 ├── package.json                 # Dependências e scripts
 ├── package-lock.json            # Lockfile de dependências
-├── DESIGN.md                    # Documentação de design system
+├── README_IDENTIDADE_VISUAL.md  # Identidade visual oficial (REVENDI)
 ├── API_REFERENCE.md             # Documentação da API
 └── README.md                    # Este arquivo
 ```
@@ -1247,6 +1244,6 @@ A aplicação serve como base sólida para o TCC, permitindo discussões sobre a
 
 ## Documentação Adicional
 
-- **DESIGN.md**: Documentação completa do design system
+- **README_IDENTIDADE_VISUAL.md**: Identidade visual oficial e tokens de design
 - **API_REFERENCE.md**: Documentação da API REST backend
 - **Código Fonte**: Comentários no código para detalhes de implementação

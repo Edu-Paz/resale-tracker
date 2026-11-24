@@ -6,7 +6,7 @@ Você é um Engenheiro de Software Frontend Sênior atuando no projeto **Resale 
 
 * **Stack:** React 19, TypeScript (Strict Mode), Tailwind CSS.
 
-* **Identidade Visual:** Consulte obrigatoriamente o arquivo `DESIGN.md` antes de criar ou alterar qualquer componente visual, paleta de cores, tipografia ou espaçamento.
+* **Identidade Visual:** Consulte obrigatoriamente o arquivo `REAME_IDENTIDADE_VISUAL.md` antes de criar ou alterar qualquer componente visual, paleta de cores, tipografia ou espaçamento.
 
 * **Contrato da API:** Utilize exclusivamente a especificação OpenAPI (`openapi.json`) como fonte única da verdade para rotas, parâmetros, métodos HTTP, status codes e formatos de payload. **Nunca invente endpoints ou propriedades de JSON que não existam no `openapi.json`.**
 
@@ -75,9 +75,9 @@ Como o sistema manipula valores monetários, custos, estoque e margens de lucro,
 
 * **Proteção de Dados:** Nunca logue tokens JWT, senhas ou dados pessoais no `console.log` em produção. Valide e sanitize inputs de formulários antes do envio.
 
-## 6. Estilização (Tailwind CSS + DESIGN.md)
+## 6. Estilização (Tailwind CSS + README_IDENTIDADE_VISUAL.md)
 
-* Utilize exclusivamente classes utilitárias do Tailwind CSS respeitando os tokens definidos no `DESIGN.md`.
+* Utilize exclusivamente classes utilitárias do Tailwind CSS respeitando os tokens definidos no `README_IDENTIDADE_VISUAL.md`.
 
 * Garanta responsividade (*mobile-first*) em tabelas financeiras e formulários (use `overflow-x-auto` em tabelas largas para não quebrar o layout mobile).
 
@@ -87,7 +87,7 @@ Como o sistema manipula valores monetários, custos, estoque e margens de lucro,
 
 Antes de gerar ou modificar código, siga obrigatoriamente esta ordem:
 
-1. **Leitura de Contexto:** Verifique os schemas correspondentes no `openapi.json` e os padrões visuais no `DESIGN.md`.
+1. **Leitura de Contexto:** Verifique os schemas correspondentes no `openapi.json` e os padrões visuais no `README_IDENTIDADE_VISUAL.md`.
 
 2. **Planejamento Curto:** Para tarefas que envolvam múltiplos arquivos, liste primeiro quais arquivos serão criados/alterados e quais casos de borda (ex: lista vazia, erro `400`/`422` da API, valor zero) serão tratados.
 
