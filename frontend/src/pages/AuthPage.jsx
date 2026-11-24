@@ -19,7 +19,8 @@ function AuthPage({ type, onNavigate, onAuthSuccess }) {
   return (
     <main className="auth-main">
       <section className="auth-card" aria-labelledby="auth-title">
-        <p className="eyebrow">Resale Tracker / {content.eyebrow}</p>
+        <img src="/icon_revendi.svg" alt="Revendi" className="auth-emblem" />
+        <p className="eyebrow">Revendi / {content.eyebrow}</p>
         <h1 id="auth-title">{content.title}</h1>
         <p className="auth-intro">{content.intro}</p>
         <AuthForm type={type} onNavigate={onNavigate} onAuthSuccess={onAuthSuccess} />
