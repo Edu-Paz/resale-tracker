@@ -5,11 +5,15 @@ import HomePage from './pages/HomePage'
 import UserPage from './pages/UserPage'
 import { getRoute, routes } from './routes/appRoutes'
 import { clearToken, getToken, saveToken } from './services/session'
+import { useWakeUp } from './hooks/useWakeUp'
 import './index.css'
 
 function App() {
   const [route, setRoute] = useState(getRoute)
   const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(getToken()))
+
+  // Mantém o backend free do Render acordado (só em produção).
+  useWakeUp()
 
   useEffect(() => {
     const handlePopState = () => setRoute(getRoute())
