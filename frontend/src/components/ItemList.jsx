@@ -246,7 +246,7 @@ function ItemList({ items = [], categories = [], onEdit, onSell, onDelete, onMan
             <div className="inventory-stat-card">
               <span className="inventory-stat-label">Itens vendidos</span>
               <strong className="inventory-stat-value">{soldCount} {soldCount === 1 ? 'venda' : 'vendas'}</strong>
-              <span className="inventory-stat-detail">Resultado informado pela API em cada item</span>
+              <span className="inventory-stat-detail">Vendas concluídas com resultado registrado</span>
             </div>
             <div className="inventory-stat-card">
               <span className="inventory-stat-label">Fichas cadastradas</span>

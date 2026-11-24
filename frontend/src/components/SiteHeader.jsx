@@ -26,7 +26,7 @@ function SiteHeader({ onNavigate, homePath, isAuthenticated, onLogout }) {
               </button>
             </>
           ) : (
-            <AppLink className="header-link" href={routes.login} onNavigate={onNavigate}>
+            <AppLink className="header-cta" href={routes.login} onNavigate={onNavigate}>
               Entrar
             </AppLink>
           )}

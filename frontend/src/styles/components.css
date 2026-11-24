@@ -1,7 +1,21 @@
 .header {
-  padding: 16px 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 14px 0;
   border-bottom: 1px solid var(--line);
   background: var(--surface);
+}
+
+/* Linha de destaque neon que "ilumina" a base do header */
+.header::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.45), transparent);
 }
 
 .header .container {
@@ -12,35 +26,72 @@
 
 .header-nav {
   display: flex;
-  gap: 16px;
+  align-items: center;
+  gap: 10px;
 }
 
+/* Links de navegação como "chips" com hover neon */
 .header-link {
+  display: inline-flex;
+  align-items: center;
   color: var(--muted);
   font-size: 0.875rem;
   font-weight: 500;
   text-decoration: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .header-link:hover {
   color: var(--mint);
+  background: rgba(34, 197, 94, 0.08);
+  border: 1px solid rgba(74, 222, 128, 0.4);
 }
 
+/* Botão genérico do header (ex.: Sair) */
 .header-button {
   appearance: none;
   background: transparent;
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: 8px;
   color: var(--muted);
   cursor: pointer;
   font: inherit;
   font-size: 0.875rem;
-  padding: 7px 12px;
+  font-weight: 500;
+  padding: 8px 16px;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .header-button:hover {
   border-color: var(--neon);
   color: var(--text);
+  background: rgba(34, 197, 94, 0.08);
+}
+
+/* Botão neon primário do header (ex.: Entrar) */
+.header-cta {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--neon);
+  border-radius: 8px;
+  background: var(--neon);
+  color: var(--bg);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 9px 18px;
+  text-decoration: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.header-cta:hover {
+  background: #16A34A;
+  border-color: #16A34A;
+  color: #F4F4F5;
 }
 
 .logo {
@@ -52,7 +103,7 @@
 
 .logo-mark {
   display: block;
-  height: 34px;
+  height: 36px;
   width: auto;
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
 }
