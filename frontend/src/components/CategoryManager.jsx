@@ -90,7 +90,7 @@ function CategoryManager({ categories, onCategoryCreated, onCategoryUpdated, onC
         <div className="category-manager-grid">
           {categories.map((category) => (
             <article className="category-manager-card" key={category.id}>
-              <span className="category-manager-icon">#</span>
+              <span className="category-manager-icon" aria-hidden="true">{category.name.charAt(0).toUpperCase()}</span>
               <strong>{category.name}</strong>
               <div className="item-footer-actions">
                 <button className="secondary-button" type="button" onClick={() => startEditing(category)}>Editar</button>

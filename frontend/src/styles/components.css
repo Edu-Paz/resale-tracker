@@ -1,7 +1,21 @@
 .header {
-  padding: 16px 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 14px 0;
   border-bottom: 1px solid var(--line);
-  background: var(--card);
+  background: var(--surface);
+}
+
+/* Linha de destaque neon que "ilumina" a base do header */
+.header::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.45), transparent);
 }
 
 .header .container {
@@ -12,43 +26,86 @@
 
 .header-nav {
   display: flex;
-  gap: 16px;
+  align-items: center;
+  gap: 10px;
 }
 
+/* Links de navegação como "chips" com hover neon */
 .header-link {
-  color: var(--ink-muted);
+  display: inline-flex;
+  align-items: center;
+  color: var(--muted);
   font-size: 0.875rem;
   font-weight: 500;
   text-decoration: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .header-link:hover {
-  color: var(--ink);
+  color: var(--mint);
+  background: rgba(34, 197, 94, 0.08);
+  border: 1px solid rgba(74, 222, 128, 0.4);
 }
 
+/* Botão genérico do header (ex.: Sair) */
 .header-button {
   appearance: none;
   background: transparent;
   border: 1px solid var(--line);
-  border-radius: 6px;
-  color: var(--ink-muted);
+  border-radius: 8px;
+  color: var(--muted);
   cursor: pointer;
   font: inherit;
   font-size: 0.875rem;
-  padding: 7px 12px;
+  font-weight: 500;
+  padding: 8px 16px;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .header-button:hover {
-  border-color: var(--ink-muted);
-  color: var(--ink);
+  border-color: var(--neon);
+  color: var(--text);
+  background: rgba(34, 197, 94, 0.08);
+}
+
+/* Botão neon primário do header (ex.: Entrar) */
+.header-cta {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--neon);
+  border-radius: 8px;
+  background: var(--neon);
+  color: var(--bg);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 9px 18px;
+  text-decoration: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.header-cta:hover {
+  background: #16A34A;
+  border-color: #16A34A;
+  color: #F4F4F5;
 }
 
 .logo {
-  color: var(--ink);
+  color: var(--text);
   font-family: var(--font-serif);
-  font-size: 1.25rem;
   font-weight: 600;
   text-decoration: none;
+}
+
+.logo-mark {
+  display: block;
+  height: 36px;
+  width: auto;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
 }
 
 .cta-button,
@@ -67,12 +124,13 @@
 .cta-button {
   border: 1px solid var(--ochre);
   background: var(--ochre);
-  color: var(--card);
+  color: var(--bg);
 }
 
 .cta-button:hover {
-  background: #A87324;
-  border-color: #A87324;
+  background: #16A34A;
+  border-color: #16A34A;
+  color: #F4F4F5;
 }
 
 .cta-button:disabled {
@@ -83,12 +141,12 @@
 .secondary-button {
   border: 1px solid var(--line);
   background: transparent;
-  color: var(--ink);
+  color: var(--text);
 }
 
 .secondary-button:hover {
   border-color: var(--ochre);
-  background: var(--card);
+  background: var(--surface);
 }
 
 .secondary-button:disabled {
@@ -125,15 +183,15 @@
 /* Badge de categoria neutro (etiqueta simples) */
 .category-badge {
   display: inline-block;
-  background: var(--kraft);
-  color: var(--ink-muted);
+  background: rgba(34, 197, 94, 0.08);
+  color: var(--muted);
   font-size: 0.75rem;
   font-weight: 500;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   border-radius: 4px;
   padding: 3px 8px;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(74, 222, 128, 0.3);
   line-height: 1.4;
 }
 
@@ -141,7 +199,7 @@
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(31, 42, 36, 0.5);
+  background: rgba(9, 9, 11, 0.72);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   display: flex;
@@ -187,22 +245,42 @@
 .feature-card {
   border: 1px solid var(--line);
   border-radius: 6px;
-  background: var(--card);
+  background: var(--surface);
   padding: 24px;
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--neon);
+  box-shadow: 0 12px 28px -16px rgba(34, 197, 94, 0.35);
 }
 
 .feature-index,
 .eyebrow {
-  color: var(--ink-muted);
+  color: var(--muted);
   font-size: 0.8125rem;
   font-weight: 500;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
+/* Índice dos feature cards em destaque menta (landing) */
+.feature-index {
+  color: var(--mint);
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+/* Destaque neon no texto introdutório da tela inicial */
+.eyebrow {
+  color: var(--mint);
+  font-weight: 600;
+}
+
 .feature-card h3 {
   margin: 16px 0 8px;
-  color: var(--ink);
+  color: var(--text);
   font-family: var(--font-sans);
   font-size: 1.125rem;
   font-weight: 600;
@@ -210,14 +288,14 @@
 
 .feature-card p {
   margin: 0;
-  color: var(--ink-muted);
+  color: var(--muted);
   font-size: 0.9375rem;
 }
 
 .footer {
   margin-top: auto;
   border-top: 1px solid var(--line);
-  color: var(--ink-muted);
+  color: var(--muted);
   font-size: 0.8125rem;
   padding: 32px 0;
   text-align: center;
@@ -267,9 +345,9 @@
 
 /* Etiqueta neutra de disponibilidad */
 .stock-tag {
-  border: 1px solid var(--line);
+  border: 1px solid rgba(74, 222, 128, 0.35);
   border-radius: 4px;
-  color: var(--ink-muted);
+  color: var(--muted);
   background: transparent;
   font-size: 0.75rem;
   font-weight: 500;
