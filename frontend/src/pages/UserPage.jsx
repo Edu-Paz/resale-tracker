@@ -880,11 +880,16 @@ function UserPage({onNavigate, onLogout, initialTab = 'overview'}) {
                 {activeTab === 'categories' && (
                     <CategoryManager
                         categories={categories}
+                        items={items}
                         onCategoryCreated={(category) => setCategories((current) => [...current, category])}
                         onCategoryUpdated={handleCategoryUpdated}
                         onCategoryDeleted={(categoryId) => {
                             setCategories((current) => current.filter((category) => category.id !== categoryId))
                         }}
+                        onEditItem={openEditItem}
+                        onSellItem={openSellModal}
+                        onDeleteItem={handleDeleteItem}
+                        onManageExpenses={openExpenses}
                     />
                 )}
 
